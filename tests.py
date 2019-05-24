@@ -17,7 +17,21 @@ assert not MISSING
 
 assert r(data).a._ == data['a']
 
+assert r(data).a._obj == data['a']
+
 assert r(data).x._ is MISSING
+
+assert r(data).x == MISSING
+
+assert r(data).x._ == MISSING
+
+assert not r(data).a.MISSING
+
+assert r(data).x.MISSING
+
+assert r(data).a.FOUND
+
+assert not r(data).x.FOUND
 
 assert r(data)['a']._ == data['a']
 

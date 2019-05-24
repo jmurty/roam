@@ -1,11 +1,21 @@
 class _MissingItemSingleton:
-    """ Falsey class used to flag fist item "missing" from traversal path """
+    """ Falsey class used to flag item "missing" from traversal path """
 
     def __bool__(self):
         return False
 
 
+class _FoundItemSingleton:
+    """ Truthy class used to flag item "found" with traversal path """
+
+    def __bool__(self):
+        return True
+
+
 MISSING = _MissingItemSingleton()
+
+
+FOUND = _FoundItemSingleton()
 
 
 class Roamer:
@@ -14,14 +24,21 @@ class Roamer:
         # TODO Handle `obj` that is itself a `Roamer`
         self._initial_obj = self._obj = obj
 
+    @property
+    def MISSING(self):
+        return self._obj is MISSING
+
+    @property
+    def FOUND(self):
+        return self._obj is not MISSING
+
     def __getattr__(self, attr_name):
         # `._` => return wrapped object
         if attr_name == '_':
-            if len(attr_name) == 1:
-                return self._obj
+            return self._obj
 
         # Stop here if no object to traverse
-        if self._obj is MISSING:
+        if self.MISSING:
             return self
 
         if attr_name[0] == '_':
@@ -57,7 +74,7 @@ class Roamer:
 
     def __getitem__(self, item):
         # Stop here if no object to traverse
-        if self._obj is MISSING:
+        if self.MISSING:
             return self
 
         # `[xyz]` => `obj[xyz]`
@@ -73,7 +90,7 @@ class Roamer:
 
     def __call__(self, *args, **kwargs):
         # Stop here if no object to traverse
-        if self._obj is MISSING:
+        if self.MISSING:
             return self
 
         # `(x, y, z)` => `obj(x, y, z)`
