@@ -69,14 +69,19 @@ class Roamer:
         self.__item = MISSING
         return self
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, _roam=False, **kwargs):
         # If item is callable: `.(x, y, z)` => `item(x, y, z)`
         if callable(self.__item):
-            return self.__item(*args, **kwargs)
+            call_result = self.__item(*args, **kwargs)
         # If item is not callable: `.()` => return wrapped item
         # TODO What to do if we get extra arguments when unwrapping uncallable?
         else:
-            return self.__item
+            call_result = self.__item
+
+        if _roam:
+            self.__item = call_result
+            return self
+        return call_result
 
     def __eq__(self, other):
         if isinstance(other, Roamer):

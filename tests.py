@@ -11,7 +11,7 @@ data = {
     }
 }
 
-from roam import r, MISSING
+from roam import r, MISSING, Roamer
 
 assert not MISSING
 
@@ -77,10 +77,10 @@ assert r(data).a.b._0.d(999)
 
 assert not r(data).a.b._0.d(0)
 
-assert r(data).a.b[2].split('/')[-1].strip() == 'string'
+assert type(r(data).a.b[2].split('/')) is list
 
-assert r(data).a.b[2].split('/')[-1].strip() == 'string'
+assert type(r(data).a.b[2].split('/', _roam=True)) is Roamer
 
-assert r(data).x.y[999].bloogle('/')[-999].blarg() is MISSING
+assert type(r(data).a.b[2].split('/', _roam=True)()) is list
 
-assert r(data).x.y[999].bloogle('/')[-999].blarg() == MISSING
+assert r(data).x.y[999].bloogle('/', _roam=True)[-999].blarg() is MISSING
