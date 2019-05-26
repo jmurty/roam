@@ -17,8 +17,6 @@ assert not MISSING
 
 assert r(data).a() == data['a']
 
-assert r(data).a._obj == data['a']
-
 assert r(data).x() is MISSING
 
 assert r(data).x == MISSING

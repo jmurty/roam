@@ -10,89 +10,91 @@ MISSING = _MissingItemSingleton()
 
 class Roamer:
 
-    def __init__(self, obj):
-        # TODO Handle `obj` that is itself a `Roamer`
-        self._initial_obj = self._obj = obj
+    def __init__(self, item):
+        # TODO Handle `item` that is itself a `Roamer`
+        self.__initial__item = self.__item = item
 
     def __getattr__(self, attr_name):
-        # Stop here if no object to traverse
-        if self._obj is MISSING:
+        # Stop here if no item to traverse
+        if self.__item is MISSING:
             return self
 
         if attr_name[0] == '_':
-            # `._123` => `obj[123]`
+            # `._123` => `item[123]`
             try:
                 index = int(attr_name[1:])
             except ValueError:
                 pass
             else:
                 try:
-                    self._obj = self._obj[index]
+                    self.__item = self.__item[index]
                     return self
                 except (TypeError, IndexError):
                     pass
 
-        # `.xyz` => `obj.xyz`
+        # `.xyz` => `item.xyz`
         try:
-            self._obj = getattr(self._obj, attr_name)
+            self.__item = getattr(self.__item, attr_name)
             return self
         except AttributeError:
             pass
 
-        # `.xyz` => `obj['xyz']`
+        # `.xyz` => `item['xyz']`
         try:
-            self._obj = self._obj[attr_name]
+            self.__item = self.__item[attr_name]
             return self
         except (TypeError, KeyError):
             pass
 
         # Lookup failed
-        self._obj = MISSING
+        self.__item = MISSING
         return self
 
     def __getitem__(self, item):
-        # Stop here if no object to traverse
-        if self._obj is MISSING:
+        # Stop here if no item to traverse
+        if self.__item is MISSING:
             return self
 
-        # `[xyz]` => `obj[xyz]`
+        # `[xyz]` => `item[xyz]`
         try:
-            self._obj = self._obj[item]
+            self.__item = self.__item[item]
             return self
         except (TypeError, KeyError, IndexError):
             pass
 
         # Lookup failed
-        self._obj = MISSING
+        self.__item = MISSING
         return self
 
     def __call__(self, *args, **kwargs):
-        # If obj is callable: `.(x, y, z)` => `obj(x, y, z)`
-        if callable(self._obj):
-            return self._obj(*args, **kwargs)
-        # If obj is not callable: `.()` => return wrapped object
+        # If item is callable: `.(x, y, z)` => `item(x, y, z)`
+        if callable(self.__item):
+            return self.__item(*args, **kwargs)
+        # If item is not callable: `.()` => return wrapped item
         # TODO What to do if we get extra arguments when unwrapping uncallable?
         else:
-            return self._obj
+            return self.__item
 
     def __eq__(self, other):
         if isinstance(other, Roamer):
             return (
-                    other._initial_obj == self._initial_obj
-                    and other._obj == self._obj
+                    other.__initial__item == self.__initial__item
+                    and other.__item == self.__item
             )
-        return other == self._obj
+        return other == self.__item
 
     def __bool__(self):
-        """ Return `False` if wrapped object is missing, else `bool(obj)` """
-        if self._obj is MISSING:
+        """ Return `False` if wrapped item is missing, else `bool(item)` """
+        if self.__item is MISSING:
             return False
-        return bool(self._obj)
+        return bool(self.__item)
 
     def __str__(self):
         # TODO Report on path followed
-        return f'<Roamer: => {self._obj!r}>'
+        if self.__item is MISSING:
+            return f'<Roamer: => {self.__item}>'
+        return f'<Roamer: => {self.__item!r}>'
 
 
-def r(obj):
-    return Roamer(obj)
+def r(item):
+    return Roamer(item)
