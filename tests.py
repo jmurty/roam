@@ -84,3 +84,9 @@ assert type(r(data).a.b[2].split('/', _roam=True)) is Roamer
 assert type(r(data).a.b[2].split('/', _roam=True)()) is list
 
 assert r(data).x.y[999].bloogle('/', _roam=True)[-999].blarg() is MISSING
+
+assert r(data).a.b(_invoke=len) == 3
+
+assert type(r(data).a.b(_invoke=len, _roam=True)) is Roamer
+
+assert r(data).a.b(_invoke=len, _roam=True) == 3
