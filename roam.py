@@ -15,10 +15,6 @@ class Roamer:
         self._initial_obj = self._obj = obj
 
     def __getattr__(self, attr_name):
-        # `._` => return wrapped object
-        if attr_name == '_':
-            return self._obj
-
         # Stop here if no object to traverse
         if self._obj is MISSING:
             return self
@@ -71,20 +67,13 @@ class Roamer:
         return self
 
     def __call__(self, *args, **kwargs):
-        # Stop here if no object to traverse
-        if self._obj is MISSING:
-            return self
-
-        # `(x, y, z)` => `obj(x, y, z)`
-        try:
-            self._obj = self._obj(*args, **kwargs)
-            return self
-        except TypeError:
-            pass
-
-        # Call failed
-        self._obj = MISSING
-        return self
+        # If obj is callable: `.(x, y, z)` => `obj(x, y, z)`
+        if callable(self._obj):
+            return self._obj(*args, **kwargs)
+        # If obj is not callable: `.()` => return wrapped object
+        # TODO What to do if we get extra arguments when unwrapping uncallable?
+        else:
+            return self._obj
 
     def __eq__(self, other):
         if isinstance(other, Roamer):
