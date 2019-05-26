@@ -4,6 +4,9 @@ class _MissingItemSingleton:
     def __bool__(self):
         return False
 
+    def __str__(self):
+        return 'MISSING'
+
 
 MISSING = _MissingItemSingleton()
 
