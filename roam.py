@@ -1,3 +1,6 @@
+import itertools
+
+
 class _RoamMissingItem:
     """ Falsey class used to flag item "missing" from traversal path """
 
@@ -19,9 +22,8 @@ class _RoamMissingItem:
 
 MISSING = _RoamMissingItem()
 
-# By Alex Martelli from https://stackoverflow.com/a/952952/4970
-# TODO Use `list(itertools.chain.from_iterable(l))` per comment on that link?
-_flatten = lambda l: [item for sublist in l for item in sublist]
+# From Alex Martelli in comment on https://stackoverflow.com/a/952952/4970
+_flatten = lambda l: tuple(itertools.chain.from_iterable(l))
 
 
 class _Path:
