@@ -11,7 +11,14 @@ class _MissingItemSingleton:
 MISSING = _MissingItemSingleton()
 
 
+# By Alex Martelli from https://stackoverflow.com/a/952952/4970
+# TODO Use `list(itertools.chain.from_iterable(l))` per comment on that link?
+_flatten = lambda l: [item for sublist in l for item in sublist]
+
+
 class Roamer:
+    __is_multi_item = False
+
     def __init__(self, item):
         # TODO Handle `item` that is itself a `Roamer`
         self.__initial__item = self.__item = item
@@ -23,6 +30,9 @@ class Roamer:
             return self.__item
         elif attr_name == "__initial_item":
             return self.__initial_item
+        elif attr_name == "__is_multi_item":
+            return self.__is_multi_item
+
         # Stop here if no item to traverse
         if self.__item is MISSING:
             return self
@@ -31,47 +41,62 @@ class Roamer:
             # `._123` => `item[123]`
             try:
                 index = int(attr_name[1:])
+                return self[index]
             except ValueError:
                 pass
-            else:
-                try:
-                    self.__item = self.__item[index]
-                    return self
-                except (TypeError, IndexError):
-                    pass
 
-        # `.xyz` => `item.xyz`
+        # Multi-item: `.xyz` => `[i.xyz for i in item]`
+        if self.__is_multi_item:
+            multi_items = []
+            for i in self.__item:
+                try:
+                    multi_items.append(getattr(i, attr_name))
+                except AttributeError:
+                    try:
+                        multi_items.append(i[attr_name])
+                    except (TypeError, KeyError, IndexError):
+                        pass
+            self.__item = multi_items
+            return self
+
+        # Single item: `.xyz` => `item.xyz`
         try:
             self.__item = getattr(self.__item, attr_name)
             return self
         except AttributeError:
             pass
 
-        # `.xyz` => `item['xyz']`
-        try:
-            self.__item = self.__item[attr_name]
-            return self
-        except (TypeError, KeyError):
-            pass
+        # Fall back to `self.__getitem__()`
+        return self[attr_name]
 
-        # Lookup failed
-        self.__item = MISSING
-        return self
-
-    def __getitem__(self, item):
+    def __getitem__(self, key_or_index_or_slice):
         # Stop here if no item to traverse
         if self.__item is MISSING:
             return self
 
-        # `[xyz]` => `item[xyz]`
-        try:
-            self.__item = self.__item[item]
-            return self
-        except (TypeError, KeyError, IndexError):
-            pass
+        # Multi-item: `[xyz]` => `[i[xyz] for i in item]`
+        # Single item: `[xyz]` => `item[xyz]`
+        if self.__is_multi_item:
+            multi_items = []
+            for i in self.__item:
+                try:
+                    multi_items.append(i[key_or_index_or_slice])
+                except (TypeError, KeyError, IndexError):
+                    pass
+            self.__item = multi_items
+        else:
+            try:
+                self.__item = self.__item[key_or_index_or_slice]
+            except (TypeError, KeyError, IndexError):
+                self.__item = MISSING  # Lookup failed
 
-        # Lookup failed
-        self.__item = MISSING
+        # Flag the fact our item actually has multiple elements
+        if isinstance(key_or_index_or_slice, slice):
+            # Flatten item if we are are going deeper into nested multi-items
+            if self.__is_multi_item:
+                self.__item = _flatten(self.__item)
+            self.__is_multi_item = True
+
         return self
 
     def __call__(self, *args, _roam=False, _invoke=None, **kwargs):

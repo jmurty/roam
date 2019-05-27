@@ -75,6 +75,26 @@ data = [
 
 data0 = data[0]
 
+# Select data from https://en.wikipedia.org/wiki/Monty_Python_filmography
+python_filmography = [
+    {
+        "title": "Monty Python's Flying Circus",
+        "type": "tv",
+        "years": {"from": 1975, "to": 1975},
+        "writers": [
+            {"name": "Monty Python", "group": True},
+            {"name": "Neil Innes"},
+            {"name": "Douglas Adams"},
+        ],
+    },
+    {
+        "title": "Monty Python and the Holy Grail",
+        "type": "movie",
+        "years": {"from": 1969, "to": 1974},
+        "writers": [{"name": "Monty Python", "group": True}],
+    },
+]
+
 
 class TestRoam:
     def test_missing_singleton(self):
@@ -214,3 +234,40 @@ class TestRoam:
 
         for item_roamer in r(data0).license.name.x:
             pytest.fail("Shouldn't be able to iterate over MISSING")
+
+    def test_nested_iterable_traversal(self):
+        assert r(data)[:]["owner"]["login"] == ["jmurty", "jmurty"]
+
+        assert r(python_filmography)[:]["title"] == [
+            "Monty Python's Flying Circus",
+            "Monty Python and the Holy Grail",
+        ]
+        assert r(python_filmography)[:]["writers"][:]["name"] == [
+            "Monty Python",
+            "Neil Innes",
+            "Douglas Adams",
+            "Monty Python",
+        ]
+        assert r(python_filmography)[:].writers[:].name == [
+            "Monty Python",
+            "Neil Innes",
+            "Douglas Adams",
+            "Monty Python",
+        ]
+
+        assert r(python_filmography)[:]["writers"][1]["name"] == ["Neil Innes"]
+
+        assert r(python_filmography)[:].writers[1].name == ["Neil Innes"]
+
+    def test_nested_iterable_traversal_missing(self):
+        # Referencing missing attr/keys results in an empty list
+        assert r(python_filmography)[:].x == []
+        assert r(python_filmography)[:]["x"] == []
+
+        assert r(python_filmography)[:].title.x == []
+        assert r(python_filmography)[:]["title"]["x"] == []
+
+        # Referencing *sometimes* missing attr/keys results in partial list
+        assert len(r(python_filmography)[:].writers[:]()) == 4
+        assert r(python_filmography)[:].writers[:].group == [True, True]
+        assert r(python_filmography)[:]["writers"][:]["group"] == [True, True]
