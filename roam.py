@@ -26,6 +26,8 @@ _flatten = lambda l: [item for sublist in l for item in sublist]
 
 
 class Roamer:
+    __item = None
+    __initial__item = None
     __is_multi_item = False
 
     def __init__(self, item):
@@ -33,15 +35,6 @@ class Roamer:
         self.__initial__item = self.__item = item
 
     def __getattr__(self, attr_name):
-        # Provide a way to get internal variable back again unmolested
-        # TODO Find a cleaner way to do this
-        if attr_name == "__item":
-            return self.__item
-        elif attr_name == "__initial_item":
-            return self.__initial_item
-        elif attr_name == "__is_multi_item":
-            return self.__is_multi_item
-
         # Stop here if no item to traverse
         if self.__item is MISSING:
             return self
