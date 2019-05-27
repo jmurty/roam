@@ -37,14 +37,6 @@ class Roamer:
         if self.__item is MISSING:
             return self
 
-        if attr_name[0] == "_":
-            # `._123` => `item[123]`
-            try:
-                index = int(attr_name[1:])
-                return self[index]
-            except ValueError:
-                pass
-
         # Multi-item: `.xyz` => `[i.xyz for i in item]`
         if self.__is_multi_item:
             multi_items = []

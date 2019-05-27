@@ -161,14 +161,6 @@ class TestRoam:
 
         assert r(data)[2:4] == data[2:4]
 
-    def test_pseudo_index_getitem_traversal(self):
-        assert r(data0).license.name._0 == data0["license"]["name"][0]
-
-        assert r(data0).license.name._1 == data0["license"]["name"][1]
-
-    def test_pseudo_index_getitem_traversal_missing(self):
-        assert r(data0).license.name._99 == MISSING
-
     def test_call_returns_item(self):
         assert r(data0).license.name() is data0["license"]["name"]
 
