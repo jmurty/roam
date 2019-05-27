@@ -86,6 +86,21 @@ class Roamer:
             return self
         return call_result
 
+    def __iter__(self):
+        try:
+            self.__item_iter = self.__item.__iter__()
+        except AttributeError:
+            self.__item_iter = None
+        return self
+
+    def __next__(self):
+        if self.__item_iter is None:
+            raise StopIteration()
+        next_value = self.__item_iter.__next__()
+        item_roamer = Roamer(self)
+        item_roamer.__item = next_value
+        return item_roamer
+
     def __eq__(self, other):
         if isinstance(other, Roamer):
             return (

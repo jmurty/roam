@@ -1,3 +1,5 @@
+import pytest
+
 from roam import r, MISSING, Roamer
 
 
@@ -193,3 +195,22 @@ class TestRoam:
     def test_call_with_invoke_and_roam_options(self):
         assert isinstance(r(data0).owner(_invoke=len, _roam=True), Roamer)
         assert r(data0).owner(_invoke=len, _roam=True) == 4
+
+    def test_iterator_traversal(self):
+        for i, item_roamer in enumerate(r(data)):
+            assert isinstance(item_roamer, Roamer)
+            assert item_roamer.name == data[i]["name"]
+
+        # Trying to iterating over non-iterable
+        for item_roamer in r(data0).size:
+            pytest.fail("Shouldn't be able to iterate over int")
+
+        for item_roamer in r(data0).fork:
+            pytest.fail("Shouldn't be able to iterate over bool")
+
+    def test_iterator_traversal_missing(self):
+        for item_roamer in r(data0).x:
+            pytest.fail("Shouldn't be able to iterate over MISSING")
+
+        for item_roamer in r(data0).license.name.x:
+            pytest.fail("Shouldn't be able to iterate over MISSING")
