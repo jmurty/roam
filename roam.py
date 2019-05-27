@@ -17,6 +17,12 @@ class Roamer:
         self.__initial__item = self.__item = item
 
     def __getattr__(self, attr_name):
+        # Provide a way to get internal variable back again unmolested
+        # TODO Find a cleaner way to do this
+        if attr_name == "__item":
+            return self.__item
+        elif attr_name == "__initial_item":
+            return self.__initial_item
         # Stop here if no item to traverse
         if self.__item is MISSING:
             return self
