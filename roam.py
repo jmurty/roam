@@ -82,7 +82,7 @@ class Roamer:
             getattr(self.__path, attr_name)
             return self
 
-        # Multi-item: `.xyz` => `[i.xyz for i in item]`
+        # Multi-item: `.xyz` => `(i.xyz for i in item)`
         if self.__is_multi_item:
             multi_items = []
             for i in self.__item:
@@ -93,7 +93,7 @@ class Roamer:
                         multi_items.append(i[attr_name])
                     except (TypeError, KeyError, IndexError):
                         pass
-            self.__item = multi_items
+            self.__item = tuple(multi_items)
             getattr(self.__path, attr_name)
             return self
 
@@ -123,7 +123,7 @@ class Roamer:
                 self.__path[key_or_index_or_slice]
             return self
 
-        # Multi-item: `[xyz]` => `[i[xyz] for i in item]`
+        # Multi-item: `[xyz]` => `(i[xyz] for i in item)`
         # Single item: `[xyz]` => `item[xyz]`
         if self.__is_multi_item:
             multi_items = []
@@ -132,7 +132,7 @@ class Roamer:
                     multi_items.append(i[key_or_index_or_slice])
                 except (TypeError, KeyError, IndexError):
                     pass
-            self.__item = multi_items
+            self.__item = tuple(multi_items)
         else:
             try:
                 self.__item = self.__item[key_or_index_or_slice]

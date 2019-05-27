@@ -262,41 +262,41 @@ class TestRoamer:
             pytest.fail("Shouldn't be able to iterate over MISSING")
 
     def test_nested_iterable_traversal(self):
-        assert r(github_data)[:]["owner"]["login"] == ["jmurty", "jmurty"]
+        assert r(github_data)[:]["owner"]["login"] == ("jmurty", "jmurty")
 
-        assert r(python_filmography)[:]["title"] == [
+        assert r(python_filmography)[:]["title"] == (
             "Monty Python's Flying Circus",
             "Monty Python and the Holy Grail",
-        ]
-        assert r(python_filmography)[:]["writers"][:]["name"] == [
+        )
+        assert r(python_filmography)[:]["writers"][:]["name"] == (
             "Monty Python",
             "Neil Innes",
             "Douglas Adams",
             "Monty Python",
-        ]
-        assert r(python_filmography)[:].writers[:].name == [
+        )
+        assert r(python_filmography)[:].writers[:].name == (
             "Monty Python",
             "Neil Innes",
             "Douglas Adams",
             "Monty Python",
-        ]
+        )
 
-        assert r(python_filmography)[:]["writers"][1]["name"] == ["Neil Innes"]
+        assert r(python_filmography)[:]["writers"][1]["name"] == ("Neil Innes",)
 
-        assert r(python_filmography)[:].writers[1].name == ["Neil Innes"]
+        assert r(python_filmography)[:].writers[1].name == ("Neil Innes",)
 
     def test_nested_iterable_traversal_missing(self):
         # Referencing missing attr/keys results in an empty list
-        assert r(python_filmography)[:].x == []
-        assert r(python_filmography)[:]["x"] == []
+        assert r(python_filmography)[:].x == tuple()
+        assert r(python_filmography)[:]["x"] == tuple()
 
-        assert r(python_filmography)[:].title.x == []
-        assert r(python_filmography)[:]["title"]["x"] == []
+        assert r(python_filmography)[:].title.x == tuple()
+        assert r(python_filmography)[:]["title"]["x"] == tuple()
 
         # Referencing *sometimes* missing attr/keys results in partial list
         assert len(r(python_filmography)[:].writers[:]()) == 4
-        assert r(python_filmography)[:].writers[:].group == [True, True]
-        assert r(python_filmography)[:]["writers"][:]["group"] == [True, True]
+        assert r(python_filmography)[:].writers[:].group == (True, True)
+        assert r(python_filmography)[:]["writers"][:]["group"] == (True, True)
 
     def test_path_reporting(self):
         assert (
@@ -316,7 +316,7 @@ class TestRoamer:
 
         assert (
             str(r(python_filmography)[:].writers[2]["name"])
-            == "<Roamer: <class 'list'>[:].writers[2]['name'] => ['Douglas Adams']>"
+            == "<Roamer: <class 'list'>[:].writers[2]['name'] => ('Douglas Adams',)>"
         )
 
         assert (
