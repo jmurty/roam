@@ -5,6 +5,8 @@ verify_ssl = true
 
 [dev-packages]
 pytest = "*"
+pre-commit = "*"
+importlib-resources = "*"  # Required by pre-commit but not always installed...
 
 [packages]
 
