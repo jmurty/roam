@@ -25,18 +25,55 @@ MISSING = _RoamMissingItem()
 _flatten = lambda l: [item for sublist in l for item in sublist]
 
 
+class _Path:
+    __steps = []
+    __has_missing = False
+
+    def __init__(self):
+        self.__steps = []
+
+    def missing(self):
+        if not self.__has_missing:
+            self.__steps.append(" *!* ")
+        self.__has_missing = True
+
+    def __getattr__(self, attr_name):
+        self.__steps.append(f".{attr_name}")
+
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            # TODO Describe different slices
+            item_desc = "[:]"
+        else:
+            item_desc = f"[{item!r}]"
+        self.__steps.append(item_desc)
+
+    def __call__(self, *args, **kwargs):
+        self.__steps.append(f"({args}, {kwargs}")
+
+    def steps_str(self):
+        return "".join(self.__steps)
+
+    def __str__(self):
+        return f"<roam.Path {self.steps_str()}>"
+
+
 class Roamer:
     __item = None
     __initial__item = None
+    __path = None
     __is_multi_item = False
+    __skip_path_updates = False
 
     def __init__(self, item):
         # TODO Handle `item` that is itself a `Roamer`
         self.__initial__item = self.__item = item
+        self.__path = _Path()
 
     def __getattr__(self, attr_name):
         # Stop here if no item to traverse
         if self.__item is MISSING:
+            getattr(self.__path, attr_name)
             return self
 
         # Multi-item: `.xyz` => `[i.xyz for i in item]`
@@ -51,6 +88,7 @@ class Roamer:
                     except (TypeError, KeyError, IndexError):
                         pass
             self.__item = multi_items
+            getattr(self.__path, attr_name)
             return self
 
         # Single item: `.xyz` => `item.xyz`
@@ -61,11 +99,22 @@ class Roamer:
             pass
 
         # Fall back to `self.__getitem__()`
-        return self[attr_name]
+        self.__skip_path_updates = True
+        result = self[attr_name]
+        self.__skip_path_updates = False
+
+        # Log attribute lookup to path, successful or not
+        if result.__item is MISSING:
+            self.__path.missing()
+        getattr(self.__path, attr_name)
+
+        return result
 
     def __getitem__(self, key_or_index_or_slice):
         # Stop here if no item to traverse
         if self.__item is MISSING:
+            if not self.__skip_path_updates:
+                self.__path[key_or_index_or_slice]
             return self
 
         # Multi-item: `[xyz]` => `[i[xyz] for i in item]`
@@ -83,7 +132,9 @@ class Roamer:
             try:
                 self.__item = self.__item[key_or_index_or_slice]
             except (TypeError, KeyError, IndexError):
-                self.__item = MISSING  # Lookup failed
+                # Key lookup failed, which is also the last possible lookup
+                self.__item = MISSING
+                self.__path.missing()
 
         # Flag the fact our item actually has multiple elements
         if isinstance(key_or_index_or_slice, slice):
@@ -91,6 +142,10 @@ class Roamer:
             if self.__is_multi_item:
                 self.__item = _flatten(self.__item)
             self.__is_multi_item = True
+
+        # Log attribute lookup to path, successful or not
+        if not self.__skip_path_updates:
+            self.__path[key_or_index_or_slice]
 
         return self
 
@@ -141,8 +196,8 @@ class Roamer:
     def __str__(self):
         # TODO Report on path followed
         if self.__item is MISSING:
-            return f"<Roamer: => {self.__item}>"
-        return f"<Roamer: => {self.__item!r}>"
+            return f"<Roamer: {type(self.__initial__item)}{self.__path.steps_str()} => {self.__item}>"
+        return f"<Roamer: {type(self.__initial__item)}{self.__path.steps_str()} => {self.__item!r}>"
 
 
 def r(item):

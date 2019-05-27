@@ -288,3 +288,34 @@ class TestRoamer:
         assert len(r(python_filmography)[:].writers[:]()) == 4
         assert r(python_filmography)[:].writers[:].group == [True, True]
         assert r(python_filmography)[:]["writers"][:]["group"] == [True, True]
+
+    def test_path_reporting(self):
+        assert (
+            str(r(github_data0).license.name)
+            == "<Roamer: <class 'dict'>.license.name => 'Apache License 2.0'>"
+        )
+
+        assert (
+            str(r(github_data0)["license"]["name"])
+            == "<Roamer: <class 'dict'>['license']['name'] => 'Apache License 2.0'>"
+        )
+
+        assert (
+            str(r(github_data0)["license"].name)
+            == "<Roamer: <class 'dict'>['license'].name => 'Apache License 2.0'>"
+        )
+
+        assert (
+            str(r(python_filmography)[:].writers[2]["name"])
+            == "<Roamer: <class 'list'>[:].writers[2]['name'] => ['Douglas Adams']>"
+        )
+
+        assert (
+            str(r(github_data0).license["x"])
+            == "<Roamer: <class 'dict'>.license *!* ['x'] => <Roam.MISSING>>"
+        )
+
+        assert (
+            str(r(python_filmography)[0].writers.x)
+            == "<Roamer: <class 'list'>[0].writers *!* .x => <Roam.MISSING>>"
+        )
