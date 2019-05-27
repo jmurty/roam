@@ -96,10 +96,16 @@ python_filmography = [
 ]
 
 
-class TestRoam:
-    def test_missing_singleton(self):
-        # `MISSING` is falsey
+class TestRoamer:
+    def test_missing_has_rich_falsey_behaviour(self):
         assert not MISSING
+
+        assert not MISSING
+
+        assert len(MISSING) == 0
+
+        for _ in MISSING:
+            pytest.fail("Shouldn't be able to iterate over MISSING")
 
     def test_getattr_traversal(self):
         assert r(github_data0).license == github_data0["license"]
@@ -114,6 +120,11 @@ class TestRoam:
         assert r(github_data0).license.x == MISSING
 
         assert not r(github_data0).license.x  # Falsey
+
+        # Confirm the underlying item is the MISSING singleton
+        assert r(github_data0).license.x() is MISSING
+        assert r(github_data0).license.x() == MISSING
+        assert not r(github_data0).license.x()  # Falsey
 
     def test_getitem_traversal(self):
         assert r(github_data0)["license"] == github_data0["license"]
@@ -135,6 +146,11 @@ class TestRoam:
 
         assert not r(github_data0)["license"]["name"]["x"]  # Falsey
 
+        # Confirm the underlying item is the MISSING singleton
+        assert r(github_data0)["license"]["name"]["x"]() is MISSING
+        assert r(github_data0)["license"]["name"]["x"]() == MISSING
+        assert not r(github_data0)["license"]["name"]["x"]()  # Falsey
+
     def test_getattr_and_getitem_traversal(self):
         assert r(github_data0).license["name"] == github_data0["license"]["name"]
 
@@ -147,6 +163,10 @@ class TestRoam:
 
         assert r(github_data0)["license"].x == MISSING
 
+        # Confirm the underlying item is the MISSING singleton
+        assert r(github_data0).license["x"]() is MISSING
+        assert r(github_data0)["license"].x() is MISSING
+
     def test_slice_traversal(self):
         assert r(github_data)[:] == github_data[:]
 
@@ -156,6 +176,7 @@ class TestRoam:
         assert len(github_data) == 2
 
         assert r(github_data)[3] == MISSING
+        assert r(github_data)[3]() is MISSING
 
         assert r(github_data)[3:] == []
 

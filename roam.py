@@ -1,14 +1,23 @@
-class _MissingItemSingleton:
+class _RoamMissingItem:
     """ Falsey class used to flag item "missing" from traversal path """
 
     def __bool__(self):
         return False
 
+    def __len__(self):
+        return 0
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        raise StopIteration()
+
     def __str__(self):
-        return "MISSING"
+        return "<Roam.MISSING>"
 
 
-MISSING = _MissingItemSingleton()
+MISSING = _RoamMissingItem()
 
 
 # By Alex Martelli from https://stackoverflow.com/a/952952/4970
@@ -68,6 +77,7 @@ class Roamer:
 
         # Multi-item: `[xyz]` => `[i[xyz] for i in item]`
         # Single item: `[xyz]` => `item[xyz]`
+        # import pdb; pdb.set_trace()  # TODO Delete this!
         if self.__is_multi_item:
             multi_items = []
             for i in self.__item:
@@ -133,9 +143,6 @@ class Roamer:
         return other == self.__item
 
     def __bool__(self):
-        """ Return `False` if wrapped item is missing, else `bool(item)` """
-        if self.__item is MISSING:
-            return False
         return bool(self.__item)
 
     def __str__(self):
