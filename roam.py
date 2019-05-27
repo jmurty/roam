@@ -19,7 +19,6 @@ class _RoamMissingItem:
 
 MISSING = _RoamMissingItem()
 
-
 # By Alex Martelli from https://stackoverflow.com/a/952952/4970
 # TODO Use `list(itertools.chain.from_iterable(l))` per comment on that link?
 _flatten = lambda l: [item for sublist in l for item in sublist]
@@ -56,6 +55,13 @@ class _Path:
 
     def __str__(self):
         return f"<roam.Path {self.steps_str()}>"
+
+
+class RoamPathException(Exception):
+    def __init__(self, path):
+        self.path = path
+
+    # TODO Improve path description in exception
 
 
 class Roamer:
@@ -149,7 +155,10 @@ class Roamer:
 
         return self
 
-    def __call__(self, *args, _roam=False, _invoke=None, **kwargs):
+    def __call__(self, *args, _raise=False, _roam=False, _invoke=None, **kwargs):
+        if _raise and self.__item is MISSING:
+            raise RoamPathException(self.__path)
+
         # If an explicit callable is provided, call `_invoke(item, x, y, z)`
         if _invoke is not None:
             call_result = _invoke(self.__item, *args, **kwargs)

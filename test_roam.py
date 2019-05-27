@@ -1,6 +1,6 @@
 import pytest
 
-from roam import r, MISSING, Roamer
+from roam import r, MISSING, Roamer, RoamPathException
 
 
 # Amended subset of GitHub user data for 'jmurty' from
@@ -193,6 +193,15 @@ class TestRoamer:
 
         assert r(github_data0).license.x() == MISSING
         assert r(github_data0)["name"].x() is MISSING
+
+    def test_call_raise_on_item_missing(self):
+        with pytest.raises(RoamPathException) as ex:
+            r(github_data0).x(_raise=True)
+        assert str(ex.value) == "<roam.Path  *!* .x>"
+
+        with pytest.raises(RoamPathException) as ex:
+            r(github_data0).license["name"].x(_raise=True)
+        assert str(ex.value) == "<roam.Path .license['name'] *!* .x>"
 
     def test_call_delegates_to_and_returns_item(self):
         # Delegate to methods on `dict` item
