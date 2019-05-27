@@ -125,7 +125,6 @@ class Roamer:
 
         # Multi-item: `[xyz]` => `[i[xyz] for i in item]`
         # Single item: `[xyz]` => `item[xyz]`
-        # import pdb; pdb.set_trace()  # TODO Delete this!
         if self.__is_multi_item:
             multi_items = []
             for i in self.__item:
@@ -203,7 +202,6 @@ class Roamer:
         return bool(self.__item)
 
     def __str__(self):
-        # TODO Report on path followed
         if self.__item is MISSING:
             return f"<Roamer: {type(self.__initial__item)}{self.__path.steps_str()} => {self.__item}>"
         return f"<Roamer: {type(self.__initial__item)}{self.__path.steps_str()} => {self.__item!r}>"
