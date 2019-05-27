@@ -5,14 +5,13 @@ class _MissingItemSingleton:
         return False
 
     def __str__(self):
-        return 'MISSING'
+        return "MISSING"
 
 
 MISSING = _MissingItemSingleton()
 
 
 class Roamer:
-
     def __init__(self, item):
         # TODO Handle `item` that is itself a `Roamer`
         self.__initial__item = self.__item = item
@@ -22,7 +21,7 @@ class Roamer:
         if self.__item is MISSING:
             return self
 
-        if attr_name[0] == '_':
+        if attr_name[0] == "_":
             # `._123` => `item[123]`
             try:
                 index = int(attr_name[1:])
@@ -90,8 +89,8 @@ class Roamer:
     def __eq__(self, other):
         if isinstance(other, Roamer):
             return (
-                    other.__initial__item == self.__initial__item
-                    and other.__item == self.__item
+                other.__initial__item == self.__initial__item
+                and other.__item == self.__item
             )
         return other == self.__item
 
@@ -104,8 +103,8 @@ class Roamer:
     def __str__(self):
         # TODO Report on path followed
         if self.__item is MISSING:
-            return f'<Roamer: => {self.__item}>'
-        return f'<Roamer: => {self.__item!r}>'
+            return f"<Roamer: => {self.__item}>"
+        return f"<Roamer: => {self.__item!r}>"
 
 
 def r(item):
