@@ -1,6 +1,6 @@
 import pytest
 
-from roam import r, MISSING, Roamer, RoamPathException
+from roam import r, r_strict, MISSING, Roamer, RoamPathException
 
 
 # Amended subset of GitHub user data for 'jmurty' from
@@ -297,7 +297,7 @@ class TestRoamer:
             pytest.fail("Shouldn't be able to iterate over MISSING")
 
         with pytest.raises(RoamPathException) as ex:
-            r(github_data0, _raise=True).license.name.x
+            r_strict(github_data0).license.name.x
         assert str(ex.value) == "<roam.Path .license.name *!* .x>"
 
     def test_nested_iterable_traversal(self):

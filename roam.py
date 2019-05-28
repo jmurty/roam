@@ -226,3 +226,7 @@ class Roamer:
 
 def r(item, _raise=False):
     return Roamer(item, _raise=_raise)
+
+
+def r_strict(item):
+    return Roamer(item, _raise=True)
