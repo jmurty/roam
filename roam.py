@@ -30,9 +30,13 @@ class _Path:
     _r_steps = []
     _r_has_missing = False
 
-    def __init__(self):
-        self._r_steps = []
-        self._r_has_missing = False
+    def __init__(self, path_to_clone=None):
+        if path_to_clone is not None:
+            for attr in ("_r_steps", "_r_has_missing"):
+                setattr(self, attr, getattr(path_to_clone, attr))
+        else:
+            self._r_steps = []
+            self._r_has_missing = False
 
     def missing(self):
         if not self._r_has_missing:
@@ -75,9 +79,14 @@ class Roamer:
     _r_skip_path_updates = False
 
     def __init__(self, item):
-        # TODO Handle `item` that is itself a `Roamer`
-        self._r_initial_item = self._r_item = item
-        self._r_path = _Path()
+        # Handle `item` that is itself a `Roamer`
+        if isinstance(item, Roamer):
+            for attr in ("_r_item", "_r_initial_item", "_r_is_multi_item"):
+                setattr(self, attr, getattr(item, attr))
+            self._r_path = _Path(item._r_path)
+        else:
+            self._r_initial_item = self._r_item = item
+            self._r_path = _Path()
 
     def __getattr__(self, attr_name):
         # Stop here if no item to traverse
