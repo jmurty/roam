@@ -121,6 +121,8 @@ class TestRoamer:
 
         assert not r(github_data0).license.x  # Falsey
 
+        assert not r(github_data0).license.x.y  # Falsey
+
         # Confirm the underlying item is the MISSING singleton
         assert r(github_data0).license.x() is MISSING
         assert r(github_data0).license.x() == MISSING
@@ -145,6 +147,8 @@ class TestRoamer:
         assert r(github_data0)["license"]["name"]["x"] == MISSING
 
         assert not r(github_data0)["license"]["name"]["x"]  # Falsey
+
+        assert not r(github_data0)["license"]["name"]["x"]["y"]  # Falsey
 
         # Confirm the underlying item is the MISSING singleton
         assert r(github_data0)["license"]["name"]["x"]() is MISSING
@@ -311,6 +315,9 @@ class TestRoamer:
         assert len(r(python_filmography)[:].writers[:]()) == 4
         assert r(python_filmography)[:].writers[:].group == (True, True)
         assert r(python_filmography)[:]["writers"][:]["group"] == (True, True)
+
+    def test_roamer_equality(self):
+        assert r(python_filmography)[:].writers == r(python_filmography)[:].writers
 
     def test_path_reporting(self):
         assert (

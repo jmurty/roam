@@ -54,9 +54,6 @@ class _Path:
             item_desc = f"[{item!r}]"
         self._r_steps.append(item_desc)
 
-    def __call__(self, *args, **kwargs):
-        self._r_steps.append(f"({args}, {kwargs}")
-
     def steps_str(self):
         return "".join(self._r_steps)
 
@@ -206,10 +203,7 @@ class Roamer:
 
     def __eq__(self, other):
         if isinstance(other, Roamer):
-            return (
-                other._r_initial_item == self._r_initial_item
-                and other._r_item == self._r_item
-            )
+            return other._r_item == self._r_item
         return other == self._r_item
 
     def __bool__(self):
