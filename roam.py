@@ -105,28 +105,30 @@ class Roamer:
                         multi_items.append(i[attr_name])
                     except (TypeError, KeyError, IndexError):
                         pass
-            self._r_item = tuple(multi_items)
-            getattr(self._r_path, attr_name)
-            return self
+            copy = Roamer(self)
+            copy._r_item = tuple(multi_items)
+            getattr(copy._r_path, attr_name)
+            return copy
 
         # Single item: `.xyz` => `item.xyz`
         try:
-            self._r_item = getattr(self._r_item, attr_name)
-            return self
+            copy = Roamer(self)
+            copy._r_item = getattr(copy._r_item, attr_name)
+            return copy
         except AttributeError:
             pass
 
         # Fall back to `self.__getitem__()`
         self._r_skip_path_updates = True
-        result = self[attr_name]
+        copy = self[attr_name]
         self._r_skip_path_updates = False
 
         # Log attribute lookup to path, successful or not
-        if result._r_item is MISSING:
-            self._r_path.missing()
-        getattr(self._r_path, attr_name)
+        if copy._r_item is MISSING:
+            copy._r_path.missing()
+        getattr(copy._r_path, attr_name)
 
-        return result
+        return copy
 
     def __getitem__(self, key_or_index_or_slice):
         # Stop here if no item to traverse
@@ -137,6 +139,7 @@ class Roamer:
 
         # Multi-item: `[xyz]` => `(i[xyz] for i in item)`
         # Single item: `[xyz]` => `item[xyz]`
+        copy = Roamer(self)
         if self._r_is_multi_item:
             multi_items = []
             for i in self._r_item:
@@ -144,27 +147,27 @@ class Roamer:
                     multi_items.append(i[key_or_index_or_slice])
                 except (TypeError, KeyError, IndexError):
                     pass
-            self._r_item = tuple(multi_items)
+            copy._r_item = tuple(multi_items)
         else:
             try:
-                self._r_item = self._r_item[key_or_index_or_slice]
+                copy._r_item = self._r_item[key_or_index_or_slice]
             except (TypeError, KeyError, IndexError):
                 # Key lookup failed, which is also the last possible lookup
-                self._r_item = MISSING
-                self._r_path.missing()
+                copy._r_item = MISSING
+                copy._r_path.missing()
 
         # Flag the fact our item actually has multiple elements
         if isinstance(key_or_index_or_slice, slice):
             # Flatten item if we are are going deeper into nested multi-items
-            if self._r_is_multi_item:
-                self._r_item = _flatten(self._r_item)
-            self._r_is_multi_item = True
+            if copy._r_is_multi_item:
+                copy._r_item = _flatten(self._r_item)
+            copy._r_is_multi_item = True
 
         # Log attribute lookup to path, successful or not
         if not self._r_skip_path_updates:
-            self._r_path[key_or_index_or_slice]
+            copy._r_path[key_or_index_or_slice]
 
-        return self
+        return copy
 
     def __call__(self, *args, _raise=False, _roam=False, _invoke=None, **kwargs):
         if _raise and self._r_item is MISSING:
@@ -183,8 +186,9 @@ class Roamer:
 
         # Re-wrap return as a `Roamer` if requested
         if _roam:
-            self._r_item = call_result
-            return self
+            copy = Roamer(self)
+            copy._r_item = call_result
+            return copy
         return call_result
 
     def __iter__(self):

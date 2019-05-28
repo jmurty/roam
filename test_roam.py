@@ -252,27 +252,27 @@ class TestRoamer:
         ] == ["Hello world!"]
 
         assert [
-            owner.fn("Hello world!") for owner in r(github_data)[:].owner if r(owner).fn
+            owner.fn("Hello world!") for owner in r(github_data)[:].owner if owner.fn
         ] == ["Hello world!"]
 
         assert [
             writer.name()
             for writer in r(python_filmography)[:].writers[:]
-            if not r(writer).group
+            if not writer.group
         ] == ["Neil Innes", "Douglas Adams"]
 
         # Trying to iterating over non-iterable
-        for item_roamer in r(github_data0).size:
+        for _ in r(github_data0).size:
             pytest.fail("Shouldn't be able to iterate over int")
 
-        for item_roamer in r(github_data0).fork:
+        for _ in r(github_data0).fork:
             pytest.fail("Shouldn't be able to iterate over bool")
 
     def test_iterator_traversal_missing(self):
-        for item_roamer in r(github_data0).x:
+        for _ in r(github_data0).x:
             pytest.fail("Shouldn't be able to iterate over MISSING")
 
-        for item_roamer in r(github_data0).license.name.x:
+        for _ in r(github_data0).license.name.x:
             pytest.fail("Shouldn't be able to iterate over MISSING")
 
     def test_nested_iterable_traversal(self):
