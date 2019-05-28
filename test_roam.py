@@ -247,6 +247,20 @@ class TestRoamer:
             assert isinstance(item_roamer, Roamer)
             assert item_roamer.name == github_data[i]["name"]
 
+        assert [
+            owner_fn("Hello world!") for owner_fn in r(github_data)[:].owner.fn
+        ] == ["Hello world!"]
+
+        assert [
+            owner.fn("Hello world!") for owner in r(github_data)[:].owner if r(owner).fn
+        ] == ["Hello world!"]
+
+        assert [
+            writer.name()
+            for writer in r(python_filmography)[:].writers[:]
+            if not r(writer).group
+        ] == ["Neil Innes", "Douglas Adams"]
+
         # Trying to iterating over non-iterable
         for item_roamer in r(github_data0).size:
             pytest.fail("Shouldn't be able to iterate over int")

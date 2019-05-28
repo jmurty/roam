@@ -197,10 +197,8 @@ class Roamer:
     def __next__(self):
         if self._r_item_iter is None:
             raise StopIteration()
-        next_value = self.__item_iter.__next__()
-        item_roamer = Roamer(self)
-        item_roamer.__item = next_value
-        return item_roamer
+        next_value = next(self._r_item_iter)
+        return Roamer(next_value)
 
     def __eq__(self, other):
         if isinstance(other, Roamer):
