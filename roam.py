@@ -69,21 +69,26 @@ class RoamPathException(Exception):
 
 
 class Roamer:
+    # Internal state variables
     _r_item = None
     _r_initial_item = None
     _r_path = None
     _r_is_multi_item = False
+    # Options
+    _r_raise = False
+    # Temporary flags
     _r_skip_path_updates = False
 
-    def __init__(self, item):
+    def __init__(self, item, _raise=False):
         # Handle `item` that is itself a `Roamer`
         if isinstance(item, Roamer):
-            for attr in ("_r_item", "_r_initial_item", "_r_is_multi_item"):
+            for attr in ("_r_item", "_r_initial_item", "_r_is_multi_item", "_r_raise"):
                 setattr(self, attr, getattr(item, attr))
             self._r_path = _Path(item._r_path)
         else:
             self._r_initial_item = self._r_item = item
             self._r_path = _Path()
+            self._r_raise = _raise
 
     def __getattr__(self, attr_name):
         # Stop here if no item to traverse
@@ -116,14 +121,15 @@ class Roamer:
             pass
 
         # Fall back to `self.__getitem__()`
-        self._r_skip_path_updates = True
-        copy = self[attr_name]
-        self._r_skip_path_updates = False
-
-        # Log attribute lookup to path, successful or not
-        if copy._r_item is MISSING:
-            copy._r_path.missing()
-        getattr(copy._r_path, attr_name)
+        try:
+            self._r_skip_path_updates = True
+            copy = self[attr_name]
+            self._r_skip_path_updates = False
+        except RoamPathException:
+            raise
+        finally:
+            # Log attribute lookup to path, successful or not
+            getattr(copy._r_path, attr_name)
 
         return copy
 
@@ -163,6 +169,9 @@ class Roamer:
         # Log attribute lookup to path, successful or not
         if not self._r_skip_path_updates:
             copy._r_path[key_or_index_or_slice]
+
+        if copy._r_item is MISSING and copy._r_raise:
+            raise RoamPathException(copy._r_path)
 
         return copy
 
@@ -215,5 +224,5 @@ class Roamer:
         return f"<Roamer: {type(self._r_initial_item)}{self._r_path.steps_str()} => {self._r_item!r}>"
 
 
-def r(item):
-    return Roamer(item)
+def r(item, _raise=False):
+    return Roamer(item, _raise=_raise)
