@@ -171,6 +171,19 @@ class TestRoamer:
         assert r(github_data0).license["x"]() is MISSING
         assert r(github_data0)["license"].x() is MISSING
 
+    def test_fail_fast(self):
+        with pytest.raises(RoamPathException) as ex:
+            r(github_data0, _raise=True).x
+        assert str(ex.value) == "<roam.Path  *!* .x>"
+
+        with pytest.raises(RoamPathException) as ex:
+            r(github_data0, _raise=True).license["x"]
+        assert str(ex.value) == "<roam.Path .license *!* ['x']>"
+
+        with pytest.raises(RoamPathException) as ex:
+            r(github_data0, _raise=True)["license"].name.x
+        assert str(ex.value) == "<roam.Path ['license'].name *!* .x>"
+
     def test_slice_traversal(self):
         assert r(github_data)[:] == github_data[:]
 
@@ -205,6 +218,10 @@ class TestRoamer:
 
         with pytest.raises(RoamPathException) as ex:
             r(github_data0).license["name"].x(_raise=True)
+        assert str(ex.value) == "<roam.Path .license['name'] *!* .x>"
+
+        with pytest.raises(RoamPathException) as ex:
+            r(github_data0, _raise=True).license["name"].x()
         assert str(ex.value) == "<roam.Path .license['name'] *!* .x>"
 
     def test_call_delegates_to_and_returns_item(self):
@@ -278,6 +295,10 @@ class TestRoamer:
 
         for _ in r(github_data0).license.name.x:
             pytest.fail("Shouldn't be able to iterate over MISSING")
+
+        with pytest.raises(RoamPathException) as ex:
+            r(github_data0, _raise=True).license.name.x
+        assert str(ex.value) == "<roam.Path .license.name *!* .x>"
 
     def test_nested_iterable_traversal(self):
         assert r(github_data)[:]["owner"]["login"] == ("jmurty", "jmurty")
