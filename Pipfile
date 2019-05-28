@@ -7,6 +7,7 @@ verify_ssl = true
 pytest = "*"
 pre-commit = "*"
 importlib-resources = "*"  # Required by pre-commit but not always installed...
+pytest-cov = "*"
 
 [packages]
 
