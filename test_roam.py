@@ -174,20 +174,22 @@ class TestRoamer:
     def test_fail_fast(self):
         with pytest.raises(RoamPathException) as ex:
             r(github_data0, _raise=True).x
-        assert str(ex.value) == "<RoamPathException: missing .x for path <dict>.x>"
+        assert (
+            str(ex.value) == "<RoamPathException: missing step 1 .x for path <dict>.x>"
+        )
 
         with pytest.raises(RoamPathException) as ex:
             r(github_data0, _raise=True).license["x"]
         assert (
             str(ex.value)
-            == "<RoamPathException: missing ['x'] for path <dict>.license['x'] at <dict>>"
+            == "<RoamPathException: missing step 2 ['x'] for path <dict>.license['x'] at <dict>>"
         )
 
         with pytest.raises(RoamPathException) as ex:
             r(github_data0, _raise=True)["license"].name.x
         assert (
             str(ex.value)
-            == "<RoamPathException: missing .x for path <dict>['license'].name.x at <str>>"
+            == "<RoamPathException: missing step 3 .x for path <dict>['license'].name.x at <str>>"
         )
 
     def test_slice_traversal(self):
@@ -220,20 +222,22 @@ class TestRoamer:
     def test_call_raise_on_item_missing(self):
         with pytest.raises(RoamPathException) as ex:
             r(github_data0).x(_raise=True)
-        assert str(ex.value) == "<RoamPathException: missing .x for path <dict>.x>"
+        assert (
+            str(ex.value) == "<RoamPathException: missing step 1 .x for path <dict>.x>"
+        )
 
         with pytest.raises(RoamPathException) as ex:
             r(github_data0).license["name"].x(_raise=True)
         assert (
             str(ex.value)
-            == "<RoamPathException: missing .x for path <dict>.license['name'].x at <str>>"
+            == "<RoamPathException: missing step 3 .x for path <dict>.license['name'].x at <str>>"
         )
 
         with pytest.raises(RoamPathException) as ex:
             r(github_data0, _raise=True).license["name"].x()
         assert (
             str(ex.value)
-            == "<RoamPathException: missing .x for path <dict>.license['name'].x at <str>>"
+            == "<RoamPathException: missing step 3 .x for path <dict>.license['name'].x at <str>>"
         )
 
     def test_call_delegates_to_and_returns_item(self):
@@ -312,7 +316,7 @@ class TestRoamer:
             r_strict(github_data0).license.name.x
         assert (
             str(ex.value)
-            == "<RoamPathException: missing .x for path <dict>.license.name.x at <str>>"
+            == "<RoamPathException: missing step 3 .x for path <dict>.license.name.x at <str>>"
         )
 
     def test_nested_iterable_traversal(self):
@@ -383,15 +387,15 @@ class TestRoamer:
 
         assert (
             str(r(python_filmography)[:].writers[3]["name"])
-            == "<Roamer: missing [3] for path <list>[:].writers[3]['name'] at <tuple> => <Roam.MISSING>>"
+            == "<Roamer: missing step 3 [3] for path <list>[:].writers[3]['name'] at <tuple> => <Roam.MISSING>>"
         )
 
         assert (
             str(r(github_data0).license["x"])
-            == "<Roamer: missing ['x'] for path <dict>.license['x'] at <dict> => <Roam.MISSING>>"
+            == "<Roamer: missing step 2 ['x'] for path <dict>.license['x'] at <dict> => <Roam.MISSING>>"
         )
 
         assert (
             str(r(python_filmography)[0].writers.name)
-            == "<Roamer: missing .name for path <list>[0].writers.name at <list> => <Roam.MISSING>>"
+            == "<Roamer: missing step 3 .name for path <list>[0].writers.name at <list> => <Roam.MISSING>>"
         )

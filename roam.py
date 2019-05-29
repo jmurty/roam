@@ -49,32 +49,33 @@ class _Path:
         self._r_steps.append((item_desc, value, value is MISSING))
 
     def last_found(self):
-        last_found_step = None
-        for step in self._r_steps:
+        last_found_step = None, None
+        for i, step in enumerate(self._r_steps, 1):
             if not step[2]:
-                last_found_step = step
+                last_found_step = i, step
         return last_found_step
 
     def first_missing(self):
-        for step in self._r_steps:
+        for i, step in enumerate(self._r_steps, 1):
             if step[2]:
-                return step
+                return i, step
+        return None, None
 
     def description(self):
         result = []
 
-        first_missing = self.first_missing()
-        if first_missing:
-            desc, _, _ = first_missing
-            result.append(f"missing {desc} for path ")
+        first_missing_index, first_missing_step = self.first_missing()
+        if first_missing_step:
+            desc, _, _ = first_missing_step
+            result.append(f"missing step {first_missing_index} {desc} for path ")
 
         result.append(f"<{type(self._r_initial_item).__name__}>")
         result += [desc for desc, _, _ in self._r_steps]
 
-        if first_missing:
-            last_found = self.last_found()
-            if last_found:
-                result.append(f" at <{type(last_found[1]).__name__}>")
+        if first_missing_step:
+            _, last_found_step = self.last_found()
+            if last_found_step:
+                result.append(f" at <{type(last_found_step[1]).__name__}>")
 
         return "".join(result)
 
