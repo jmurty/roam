@@ -174,15 +174,21 @@ class TestRoamer:
     def test_fail_fast(self):
         with pytest.raises(RoamPathException) as ex:
             r(github_data0, _raise=True).x
-        assert str(ex.value) == "<roam.Path  *!* .x>"
+        assert str(ex.value) == "<RoamPathException: missing .x for path <dict>.x>"
 
         with pytest.raises(RoamPathException) as ex:
             r(github_data0, _raise=True).license["x"]
-        assert str(ex.value) == "<roam.Path .license *!* ['x']>"
+        assert (
+            str(ex.value)
+            == "<RoamPathException: missing ['x'] for path <dict>.license['x'] at <dict>>"
+        )
 
         with pytest.raises(RoamPathException) as ex:
             r(github_data0, _raise=True)["license"].name.x
-        assert str(ex.value) == "<roam.Path ['license'].name *!* .x>"
+        assert (
+            str(ex.value)
+            == "<RoamPathException: missing .x for path <dict>['license'].name.x at <str>>"
+        )
 
     def test_slice_traversal(self):
         assert r(github_data)[:] == github_data[:]
@@ -214,15 +220,21 @@ class TestRoamer:
     def test_call_raise_on_item_missing(self):
         with pytest.raises(RoamPathException) as ex:
             r(github_data0).x(_raise=True)
-        assert str(ex.value) == "<roam.Path  *!* .x>"
+        assert str(ex.value) == "<RoamPathException: missing .x for path <dict>.x>"
 
         with pytest.raises(RoamPathException) as ex:
             r(github_data0).license["name"].x(_raise=True)
-        assert str(ex.value) == "<roam.Path .license['name'] *!* .x>"
+        assert (
+            str(ex.value)
+            == "<RoamPathException: missing .x for path <dict>.license['name'].x at <str>>"
+        )
 
         with pytest.raises(RoamPathException) as ex:
             r(github_data0, _raise=True).license["name"].x()
-        assert str(ex.value) == "<roam.Path .license['name'] *!* .x>"
+        assert (
+            str(ex.value)
+            == "<RoamPathException: missing .x for path <dict>.license['name'].x at <str>>"
+        )
 
     def test_call_delegates_to_and_returns_item(self):
         # Delegate to methods on `dict` item
@@ -298,7 +310,10 @@ class TestRoamer:
 
         with pytest.raises(RoamPathException) as ex:
             r_strict(github_data0).license.name.x
-        assert str(ex.value) == "<roam.Path .license.name *!* .x>"
+        assert (
+            str(ex.value)
+            == "<RoamPathException: missing .x for path <dict>.license.name.x at <str>>"
+        )
 
     def test_nested_iterable_traversal(self):
         assert r(github_data)[:]["owner"]["login"] == ("jmurty", "jmurty")
@@ -343,30 +358,30 @@ class TestRoamer:
     def test_path_reporting(self):
         assert (
             str(r(github_data0).license.name)
-            == "<Roamer: <class 'dict'>.license.name => 'Apache License 2.0'>"
+            == "<Roamer: <dict>.license.name => 'Apache License 2.0'>"
         )
 
         assert (
             str(r(github_data0)["license"]["name"])
-            == "<Roamer: <class 'dict'>['license']['name'] => 'Apache License 2.0'>"
+            == "<Roamer: <dict>['license']['name'] => 'Apache License 2.0'>"
         )
 
         assert (
             str(r(github_data0)["license"].name)
-            == "<Roamer: <class 'dict'>['license'].name => 'Apache License 2.0'>"
+            == "<Roamer: <dict>['license'].name => 'Apache License 2.0'>"
         )
 
         assert (
             str(r(python_filmography)[:].writers[2]["name"])
-            == "<Roamer: <class 'list'>[:].writers[2]['name'] => ('Douglas Adams',)>"
+            == "<Roamer: <list>[:].writers[2]['name'] => ('Douglas Adams',)>"
         )
 
         assert (
             str(r(github_data0).license["x"])
-            == "<Roamer: <class 'dict'>.license *!* ['x'] => <Roam.MISSING>>"
+            == "<Roamer: missing ['x'] for path <dict>.license['x'] at <dict> => <Roam.MISSING>>"
         )
 
         assert (
-            str(r(python_filmography)[0].writers.x)
-            == "<Roamer: <class 'list'>[0].writers *!* .x => <Roam.MISSING>>"
+            str(r(python_filmography)[0].writers.name)
+            == "<Roamer: missing .name for path <list>[0].writers.name at <list> => <Roam.MISSING>>"
         )
