@@ -335,9 +335,9 @@ class TestRoamer:
             "Monty Python",
         )
 
-        assert r(python_filmography)[:]["writers"][1]["name"] == ("Neil Innes",)
+        assert r(python_filmography)[:]["writers"][1]["name"] == "Neil Innes"
 
-        assert r(python_filmography)[:].writers[1].name == ("Neil Innes",)
+        assert r(python_filmography)[:].writers[1].name == "Neil Innes"
 
     def test_nested_iterable_traversal_missing(self):
         # Referencing missing attr/keys results in an empty list
@@ -372,8 +372,18 @@ class TestRoamer:
         )
 
         assert (
+            str(r(python_filmography)[:].writers[2])
+            == "<Roamer: <list>[:].writers[2] => {'name': 'Douglas Adams'}>"
+        )
+
+        assert (
             str(r(python_filmography)[:].writers[2]["name"])
-            == "<Roamer: <list>[:].writers[2]['name'] => ('Douglas Adams',)>"
+            == "<Roamer: <list>[:].writers[2]['name'] => 'Douglas Adams'>"
+        )
+
+        assert (
+            str(r(python_filmography)[:].writers[3]["name"])
+            == "<Roamer: missing [3] for path <list>[:].writers[3]['name'] at <tuple> => <Roam.MISSING>>"
         )
 
         assert (

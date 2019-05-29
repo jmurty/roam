@@ -168,7 +168,14 @@ class Roamer:
                     multi_items.append(i[key_or_index_or_slice])
                 except (TypeError, KeyError, IndexError):
                     pass
-            copy._r_item = tuple(multi_items)
+            if isinstance(key_or_index_or_slice, int):
+                # Flatten item if we have selected a specific index item
+                if multi_items:
+                    copy._r_item = multi_items[0]
+                else:
+                    copy._r_item = MISSING
+            else:
+                copy._r_item = tuple(multi_items)
         else:
             try:
                 copy._r_item = self._r_item[key_or_index_or_slice]
@@ -182,6 +189,9 @@ class Roamer:
             if copy._r_is_multi_item:
                 copy._r_item = _flatten(self._r_item)
             copy._r_is_multi_item = True
+        elif isinstance(key_or_index_or_slice, int):
+            # No longer in a multi-item if we have selected a specific index item
+            copy._r_is_multi_item = False
 
         # Log attribute lookup to path, successful or not
         if not self._r_skip_path_updates:
