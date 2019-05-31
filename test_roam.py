@@ -13,6 +13,9 @@ class DataTester:
                 n = n[1:]
             setattr(self, n, v)
 
+    def __dir__(self):
+        return self.kwargs.keys()
+
     @property
     def as_dict(self):
         return self.kwargs
@@ -198,7 +201,8 @@ class TestRoamer:
             r(github_data0, _raise=True).license["x"]
         assert (
             str(ex.value)
-            == "<RoamPathException: missing step 2 ['x'] for path <dict>.license['x'] at <dict>>"
+            == "<RoamPathException: missing step 2 ['x'] for path <dict>.license['x'] at <dict>"
+            " with keys ['key', 'name', 'spdx_id', 'url']>"
         )
 
         with pytest.raises(RoamPathException) as ex:
@@ -402,13 +406,19 @@ class TestRoamer:
         )
 
         assert (
+            str(r(python_filmography)[:].writers[2]["age"])
+            == "<Roamer: missing step 4 ['age'] for path <list>[:].writers[2]['age'] at <DataTester> with attrs [name] => <Roam.MISSING>>"
+        )
+
+        assert (
             str(r(python_filmography)[:].writers[3]["name"])
-            == "<Roamer: missing step 3 [3] for path <list>[:].writers[3]['name'] at <tuple> => <Roam.MISSING>>"
+            == "<Roamer: missing step 3 [3] for path <list>[:].writers[3]['name'] at <tuple> with length 2 => <Roam.MISSING>>"
         )
 
         assert (
             str(r(github_data0).license["x"])
-            == "<Roamer: missing step 2 ['x'] for path <dict>.license['x'] at <dict> => <Roam.MISSING>>"
+            == "<Roamer: missing step 2 ['x'] for path <dict>.license['x'] at <dict>"
+            " with keys ['key', 'name', 'spdx_id', 'url'] => <Roam.MISSING>>"
         )
 
         assert (

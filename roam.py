@@ -1,3 +1,4 @@
+import re
 import itertools
 
 
@@ -38,44 +39,70 @@ class _Path:
             self._r_initial_item = initial_item
             self._r_steps = []
 
-    def log_getattr(self, attr_name, value):
-        self._r_steps.append((f".{attr_name}", value, value is MISSING))
+    def log_getattr(self, attr_name, roamer):
+        self._r_steps.append((f".{attr_name}", roamer))
 
-    def log_getitem(self, key_name, value):
+    def log_getitem(self, key_name, roamer):
         if isinstance(key_name, slice):
             item_desc = f"[{key_name.start or ''}:{key_name.stop or ''}{key_name.step and ':' + key_name.step or ''}]"
         else:
             item_desc = f"[{key_name!r}]"
-        self._r_steps.append((item_desc, value, value is MISSING))
+        self._r_steps.append((item_desc, roamer))
 
     def last_found(self):
-        last_found_step = None, None
+        last_found_step = None, None, None
         for i, step in enumerate(self._r_steps, 1):
-            if not step[2]:
-                last_found_step = i, step
+            desc, roamer = step
+            if roamer != MISSING:
+                last_found_step = i, desc, roamer
         return last_found_step
 
     def first_missing(self):
         for i, step in enumerate(self._r_steps, 1):
-            if step[2]:
-                return i, step
-        return None, None
+            desc, roamer = step
+            if roamer == MISSING:
+                return i, desc, roamer
+        return None, None, None
 
     def description(self):
         result = []
 
-        first_missing_index, first_missing_step = self.first_missing()
-        if first_missing_step:
-            desc, _, _ = first_missing_step
-            result.append(f"missing step {first_missing_index} {desc} for path ")
+        first_missing_index, first_missing_desc, first_missing_roamer = (
+            self.first_missing()
+        )
+        if first_missing_index:
+            result.append(
+                f"missing step {first_missing_index} {first_missing_desc} for path "
+            )
 
         result.append(f"<{type(self._r_initial_item).__name__}>")
-        result += [desc for desc, _, _ in self._r_steps]
+        result += [desc for desc, _ in self._r_steps]
 
-        if first_missing_step:
-            _, last_found_step = self.last_found()
-            if last_found_step:
-                result.append(f" at <{type(last_found_step[1]).__name__}>")
+        if first_missing_index:
+            _, _, last_found_roamer = self.last_found()
+            if last_found_roamer:
+                result.append(f" at <{type(last_found_roamer()).__name__}>")
+
+                # Generate hints
+                last_found_data = last_found_roamer()
+                if isinstance(last_found_data, (tuple, list)):
+                    if re.match(r"\[\d+\]", first_missing_desc):
+                        result.append(f" with length {len(last_found_data)}")
+                else:
+                    try:
+                        keys = last_found_data.keys()
+                        if keys:
+                            result.append(
+                                f" with keys [{', '.join([repr(k) for k in keys])}]"
+                            )
+                    except AttributeError:
+                        attrs = dir(last_found_data)
+                        if attrs and not isinstance(
+                            last_found_data, (str, tuple, list)
+                        ):
+                            result.append(
+                                f" with attrs [{', '.join([a for a in attrs if not a.startswith('_')])}]"
+                            )
 
         return "".join(result)
 
@@ -114,7 +141,7 @@ class Roamer:
         # Stop here if no item to traverse
         if self._r_item is MISSING:
             if not self._r_via_alternate_lookup:
-                self._r_path.log_getattr(attr_name, MISSING)
+                self._r_path.log_getattr(attr_name, self)
             return self
 
         copy = Roamer(self)
@@ -144,10 +171,10 @@ class Roamer:
                 self._r_via_alternate_lookup = True
                 copy = self[attr_name]
             finally:
-                copy._r_path.log_getattr(attr_name, copy._r_item)
+                copy._r_path.log_getattr(attr_name, copy)
                 self._r_via_alternate_lookup = False
         elif not self._r_via_alternate_lookup:
-            copy._r_path.log_getattr(attr_name, copy._r_item)
+            copy._r_path.log_getattr(attr_name, copy)
 
         if copy._r_item is MISSING and copy._r_raise:
             raise RoamPathException(copy._r_path)
@@ -158,7 +185,7 @@ class Roamer:
         # Stop here if no item to traverse
         if self._r_item is MISSING:
             if not self._r_via_alternate_lookup:
-                self._r_path.log_getitem(key_or_index_or_slice, MISSING)
+                self._r_path.log_getitem(key_or_index_or_slice, self)
             return self
 
         copy = Roamer(self)
@@ -210,10 +237,10 @@ class Roamer:
                 self._r_via_alternate_lookup = True
                 copy = getattr(self, key_or_index_or_slice)
             finally:
-                copy._r_path.log_getitem(key_or_index_or_slice, copy._r_item)
+                copy._r_path.log_getitem(key_or_index_or_slice, copy)
                 self._r_via_alternate_lookup = False
         elif not self._r_via_alternate_lookup:
-            copy._r_path.log_getitem(key_or_index_or_slice, copy._r_item)
+            copy._r_path.log_getitem(key_or_index_or_slice, copy)
 
         if copy._r_item is MISSING and copy._r_raise:
             raise RoamPathException(copy._r_path)
