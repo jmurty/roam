@@ -3,6 +3,21 @@ import pytest
 from roam import r, r_strict, MISSING, Roamer, RoamPathException
 
 
+class DataTester:
+    """ Class to convert dict data to object with attributes """
+
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+        for n, v in kwargs.items():
+            if n.startswith("_"):
+                n = n[1:]
+            setattr(self, n, v)
+
+    @property
+    def as_dict(self):
+        return self.kwargs
+
+
 # Amended subset of GitHub user data for 'jmurty' from
 # https://api.github.com/users/jmurty/repos
 github_data = [
@@ -75,24 +90,25 @@ github_data = [
 
 github_data0 = github_data[0]
 
+
 # Select data from https://en.wikipedia.org/wiki/Monty_Python_filmography
 python_filmography = [
-    {
-        "title": "Monty Python's Flying Circus",
-        "type": "tv",
-        "years": {"from": 1975, "to": 1975},
-        "writers": [
-            {"name": "Monty Python", "group": True},
-            {"name": "Neil Innes"},
-            {"name": "Douglas Adams"},
+    DataTester(
+        title="Monty Python's Flying Circus",
+        type="tv",
+        years=DataTester(_from=1975, to=1975),
+        writers=[
+            DataTester(name="Monty Python", group=True),
+            DataTester(name="Neil Innes"),
+            DataTester(name="Douglas Adams"),
         ],
-    },
-    {
-        "title": "Monty Python and the Holy Grail",
-        "type": "movie",
-        "years": {"from": 1969, "to": 1974},
-        "writers": [{"name": "Monty Python", "group": True}],
-    },
+    ),
+    DataTester(
+        title="Monty Python and the Holy Grail",
+        type="movie",
+        years=DataTester(_from=1969, to=1974),
+        writers=[DataTester(name="Monty Python", group=True)],
+    ),
 ]
 
 
@@ -242,7 +258,7 @@ class TestRoamer:
 
     def test_call_delegates_to_and_returns_item(self):
         # Delegate to methods on `dict` item
-        assert r(github_data0)["license"].items() == github_data0["license"].items()
+        assert r(github_data0)["license"]["items"]() == github_data0["license"].items()
         assert r(github_data0).license.keys() == github_data0["license"].keys()
         assert list(r(github_data0).license.values()) == list(
             github_data0["license"].values()
@@ -376,8 +392,8 @@ class TestRoamer:
         )
 
         assert (
-            str(r(python_filmography)[:].writers[2])
-            == "<Roamer: <list>[:].writers[2] => {'name': 'Douglas Adams'}>"
+            str(r(python_filmography)[:].writers[2]["as_dict"])
+            == "<Roamer: <list>[:].writers[2]['as_dict'] => {'name': 'Douglas Adams'}>"
         )
 
         assert (

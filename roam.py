@@ -97,7 +97,7 @@ class Roamer:
     # Options
     _r_raise = False
     # Temporary flags
-    _r_skip_path_updates = False
+    _r_via_alternate_lookup = False
 
     def __init__(self, item, _raise=False):
         # Handle `item` that is itself a `Roamer`
@@ -113,9 +113,11 @@ class Roamer:
     def __getattr__(self, attr_name):
         # Stop here if no item to traverse
         if self._r_item is MISSING:
-            self._r_path.log_getattr(attr_name, MISSING)
+            if not self._r_via_alternate_lookup:
+                self._r_path.log_getattr(attr_name, MISSING)
             return self
 
+        copy = Roamer(self)
         # Multi-item: `.xyz` => `(i.xyz for i in item)`
         if self._r_is_multi_item:
             multi_items = []
@@ -127,48 +129,50 @@ class Roamer:
                         multi_items.append(i[attr_name])
                     except (TypeError, KeyError, IndexError):
                         pass
-            copy = Roamer(self)
             copy._r_item = tuple(multi_items)
-            copy._r_path.log_getattr(attr_name, copy._r_item)
-            return copy
-
         # Single item: `.xyz` => `item.xyz`
-        try:
-            copy = Roamer(self)
-            copy._r_item = getattr(copy._r_item, attr_name)
-            return copy
-        except AttributeError:
-            pass
+        else:
+            try:
+                copy._r_item = getattr(copy._r_item, attr_name)
+            except AttributeError:
+                # Attr lookup failed, no more attr lookup options
+                copy._r_item = MISSING
 
-        # Fall back to `self.__getitem__()`
-        try:
-            self._r_skip_path_updates = True
-            copy = self[attr_name]
+        # Fall back to `self.__getitem__()` if lookup failed so far and we didn't come from there
+        if copy._r_item is MISSING and not self._r_via_alternate_lookup:
+            try:
+                self._r_via_alternate_lookup = True
+                copy = self[attr_name]
+            finally:
+                copy._r_path.log_getattr(attr_name, copy._r_item)
+                self._r_via_alternate_lookup = False
+        elif not self._r_via_alternate_lookup:
             copy._r_path.log_getattr(attr_name, copy._r_item)
-            self._r_skip_path_updates = False
-        except RoamPathException:
-            copy._r_path.log_getattr(attr_name, MISSING)
-            raise
+
+        if copy._r_item is MISSING and copy._r_raise:
+            raise RoamPathException(copy._r_path)
 
         return copy
 
     def __getitem__(self, key_or_index_or_slice):
         # Stop here if no item to traverse
         if self._r_item is MISSING:
-            if not self._r_skip_path_updates:
+            if not self._r_via_alternate_lookup:
                 self._r_path.log_getitem(key_or_index_or_slice, MISSING)
             return self
 
-        # Multi-item: `[xyz]` => `(i[xyz] for i in item)`
-        # Single item: `[xyz]` => `item[xyz]`
         copy = Roamer(self)
+        # Multi-item: `[xyz]` => `(i[xyz] for i in item)`
         if self._r_is_multi_item:
             multi_items = []
             for i in self._r_item:
                 try:
                     multi_items.append(i[key_or_index_or_slice])
                 except (TypeError, KeyError, IndexError):
-                    pass
+                    try:
+                        multi_items.append(getattr(i, key_or_index_or_slice))
+                    except (TypeError, AttributeError):
+                        pass
             if isinstance(key_or_index_or_slice, int):
                 # Flatten item if we have selected a specific index item
                 if multi_items:
@@ -177,11 +181,12 @@ class Roamer:
                     copy._r_item = MISSING
             else:
                 copy._r_item = tuple(multi_items)
+        # Single item: `[xyz]` => `item[xyz]`
         else:
             try:
                 copy._r_item = self._r_item[key_or_index_or_slice]
             except (TypeError, KeyError, IndexError):
-                # Key lookup failed, which is also the last possible lookup
+                # Index lookup failed, no more index lookup options
                 copy._r_item = MISSING
 
         # Flag the fact our item actually has multiple elements
@@ -194,8 +199,20 @@ class Roamer:
             # No longer in a multi-item if we have selected a specific index item
             copy._r_is_multi_item = False
 
-        # Log attribute lookup to path, successful or not
-        if not self._r_skip_path_updates:
+        # Fall back to `self.__getattr__()` if lookup failed so far and we didn't come from there
+        if (
+            copy._r_item is MISSING
+            and not self._r_via_alternate_lookup
+            # Cannot do an integer attr lookup
+            and not isinstance(key_or_index_or_slice, int)
+        ):
+            try:
+                self._r_via_alternate_lookup = True
+                copy = getattr(self, key_or_index_or_slice)
+            finally:
+                copy._r_path.log_getitem(key_or_index_or_slice, copy._r_item)
+                self._r_via_alternate_lookup = False
+        elif not self._r_via_alternate_lookup:
             copy._r_path.log_getitem(key_or_index_or_slice, copy._r_item)
 
         if copy._r_item is MISSING and copy._r_raise:
