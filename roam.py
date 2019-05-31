@@ -28,37 +28,37 @@ _flatten = lambda l: tuple(itertools.chain.from_iterable(l))
 
 
 class _Path:
-    _r_initial_item = None
-    _r_steps = []
+    _r_initial_item_ = None
+    _r_steps_ = []
 
     def __init__(self, initial_item, path_to_clone=None):
         if path_to_clone is not None:
-            for attr in ("_r_initial_item", "_r_steps"):
+            for attr in ("_r_initial_item_", "_r_steps_"):
                 setattr(self, attr, getattr(path_to_clone, attr))
         else:
-            self._r_initial_item = initial_item
-            self._r_steps = []
+            self._r_initial_item_ = initial_item
+            self._r_steps_ = []
 
     def log_getattr(self, attr_name, roamer):
-        self._r_steps.append((f".{attr_name}", roamer))
+        self._r_steps_.append((f".{attr_name}", roamer))
 
     def log_getitem(self, key_name, roamer):
         if isinstance(key_name, slice):
             item_desc = f"[{key_name.start or ''}:{key_name.stop or ''}{key_name.step and ':' + key_name.step or ''}]"
         else:
             item_desc = f"[{key_name!r}]"
-        self._r_steps.append((item_desc, roamer))
+        self._r_steps_.append((item_desc, roamer))
 
     def last_found(self):
         last_found_step = None, None, None
-        for i, step in enumerate(self._r_steps, 1):
+        for i, step in enumerate(self._r_steps_, 1):
             desc, roamer = step
             if roamer != MISSING:
                 last_found_step = i, desc, roamer
         return last_found_step
 
     def first_missing(self):
-        for i, step in enumerate(self._r_steps, 1):
+        for i, step in enumerate(self._r_steps_, 1):
             desc, roamer = step
             if roamer == MISSING:
                 return i, desc, roamer
@@ -75,8 +75,8 @@ class _Path:
                 f"missing step {first_missing_index} {first_missing_desc} for path "
             )
 
-        result.append(f"<{type(self._r_initial_item).__name__}>")
-        result += [desc for desc, _ in self._r_steps]
+        result.append(f"<{type(self._r_initial_item_).__name__}>")
+        result += [desc for desc, _ in self._r_steps_]
 
         if first_missing_index:
             _, _, last_found_roamer = self.last_found()
@@ -117,38 +117,43 @@ class RoamPathException(Exception):
 
 class Roamer:
     # Internal state variables
-    _r_item = None
-    _r_initial_item = None
-    _r_path = None
-    _r_is_multi_item = False
+    _r_item_ = None
+    _r_initial_item_ = None
+    _r_path_ = None
+    _r_is_multi_item_ = False
     # Options
-    _r_raise = False
+    _r_raise_ = False
     # Temporary flags
-    _r_via_alternate_lookup = False
+    _r_via_alternate_lookup_ = False
 
     def __init__(self, item, _raise=False):
         # Handle `item` that is itself a `Roamer`
         if isinstance(item, Roamer):
-            for attr in ("_r_item", "_r_initial_item", "_r_is_multi_item", "_r_raise"):
+            for attr in (
+                "_r_item_",
+                "_r_initial_item_",
+                "_r_is_multi_item_",
+                "_r_raise_",
+            ):
                 setattr(self, attr, getattr(item, attr))
-            self._r_path = _Path(item._r_initial_item, item._r_path)
+            self._r_path_ = _Path(item._r_initial_item_, item._r_path_)
         else:
-            self._r_initial_item = self._r_item = item
-            self._r_path = _Path(self._r_initial_item)
-            self._r_raise = _raise
+            self._r_initial_item_ = self._r_item_ = item
+            self._r_path_ = _Path(self._r_initial_item_)
+            self._r_raise_ = _raise
 
     def __getattr__(self, attr_name):
         # Stop here if no item to traverse
-        if self._r_item is MISSING:
-            if not self._r_via_alternate_lookup:
-                self._r_path.log_getattr(attr_name, self)
+        if self._r_item_ is MISSING:
+            if not self._r_via_alternate_lookup_:
+                self._r_path_.log_getattr(attr_name, self)
             return self
 
         copy = Roamer(self)
         # Multi-item: `.xyz` => `(i.xyz for i in item)`
-        if self._r_is_multi_item:
+        if self._r_is_multi_item_:
             multi_items = []
-            for i in self._r_item:
+            for i in self._r_item_:
                 try:
                     multi_items.append(getattr(i, attr_name))
                 except AttributeError:
@@ -156,43 +161,43 @@ class Roamer:
                         multi_items.append(i[attr_name])
                     except (TypeError, KeyError, IndexError):
                         pass
-            copy._r_item = tuple(multi_items)
+            copy._r_item_ = tuple(multi_items)
         # Single item: `.xyz` => `item.xyz`
         else:
             try:
-                copy._r_item = getattr(copy._r_item, attr_name)
+                copy._r_item_ = getattr(copy._r_item_, attr_name)
             except AttributeError:
                 # Attr lookup failed, no more attr lookup options
-                copy._r_item = MISSING
+                copy._r_item_ = MISSING
 
         # Fall back to `self.__getitem__()` if lookup failed so far and we didn't come from there
-        if copy._r_item is MISSING and not self._r_via_alternate_lookup:
+        if copy._r_item_ is MISSING and not self._r_via_alternate_lookup_:
             try:
-                self._r_via_alternate_lookup = True
+                self._r_via_alternate_lookup_ = True
                 copy = self[attr_name]
             finally:
-                copy._r_path.log_getattr(attr_name, copy)
-                self._r_via_alternate_lookup = False
-        elif not self._r_via_alternate_lookup:
-            copy._r_path.log_getattr(attr_name, copy)
+                copy._r_path_.log_getattr(attr_name, copy)
+                self._r_via_alternate_lookup_ = False
+        elif not self._r_via_alternate_lookup_:
+            copy._r_path_.log_getattr(attr_name, copy)
 
-        if copy._r_item is MISSING and copy._r_raise:
-            raise RoamPathException(copy._r_path)
+        if copy._r_item_ is MISSING and copy._r_raise_:
+            raise RoamPathException(copy._r_path_)
 
         return copy
 
     def __getitem__(self, key_or_index_or_slice):
         # Stop here if no item to traverse
-        if self._r_item is MISSING:
-            if not self._r_via_alternate_lookup:
-                self._r_path.log_getitem(key_or_index_or_slice, self)
+        if self._r_item_ is MISSING:
+            if not self._r_via_alternate_lookup_:
+                self._r_path_.log_getitem(key_or_index_or_slice, self)
             return self
 
         copy = Roamer(self)
         # Multi-item: `[xyz]` => `(i[xyz] for i in item)`
-        if self._r_is_multi_item:
+        if self._r_is_multi_item_:
             multi_items = []
-            for i in self._r_item:
+            for i in self._r_item_:
                 try:
                     multi_items.append(i[key_or_index_or_slice])
                 except (TypeError, KeyError, IndexError):
@@ -203,97 +208,97 @@ class Roamer:
             if isinstance(key_or_index_or_slice, int):
                 # Flatten item if we have selected a specific index item
                 if multi_items:
-                    copy._r_item = multi_items[0]
+                    copy._r_item_ = multi_items[0]
                 else:
-                    copy._r_item = MISSING
+                    copy._r_item_ = MISSING
             else:
-                copy._r_item = tuple(multi_items)
+                copy._r_item_ = tuple(multi_items)
         # Single item: `[xyz]` => `item[xyz]`
         else:
             try:
-                copy._r_item = self._r_item[key_or_index_or_slice]
+                copy._r_item_ = self._r_item_[key_or_index_or_slice]
             except (TypeError, KeyError, IndexError):
                 # Index lookup failed, no more index lookup options
-                copy._r_item = MISSING
+                copy._r_item_ = MISSING
 
         # Flag the fact our item actually has multiple elements
         if isinstance(key_or_index_or_slice, slice):
             # Flatten item if we are are going deeper into nested multi-items
-            if copy._r_is_multi_item:
-                copy._r_item = _flatten(self._r_item)
-            copy._r_is_multi_item = True
+            if copy._r_is_multi_item_:
+                copy._r_item_ = _flatten(self._r_item_)
+            copy._r_is_multi_item_ = True
         elif isinstance(key_or_index_or_slice, int):
             # No longer in a multi-item if we have selected a specific index item
-            copy._r_is_multi_item = False
+            copy._r_is_multi_item_ = False
 
         # Fall back to `self.__getattr__()` if lookup failed so far and we didn't come from there
         if (
-            copy._r_item is MISSING
-            and not self._r_via_alternate_lookup
+            copy._r_item_ is MISSING
+            and not self._r_via_alternate_lookup_
             # Cannot do an integer attr lookup
             and not isinstance(key_or_index_or_slice, int)
         ):
             try:
-                self._r_via_alternate_lookup = True
+                self._r_via_alternate_lookup_ = True
                 copy = getattr(self, key_or_index_or_slice)
             finally:
-                copy._r_path.log_getitem(key_or_index_or_slice, copy)
-                self._r_via_alternate_lookup = False
-        elif not self._r_via_alternate_lookup:
-            copy._r_path.log_getitem(key_or_index_or_slice, copy)
+                copy._r_path_.log_getitem(key_or_index_or_slice, copy)
+                self._r_via_alternate_lookup_ = False
+        elif not self._r_via_alternate_lookup_:
+            copy._r_path_.log_getitem(key_or_index_or_slice, copy)
 
-        if copy._r_item is MISSING and copy._r_raise:
-            raise RoamPathException(copy._r_path)
+        if copy._r_item_ is MISSING and copy._r_raise_:
+            raise RoamPathException(copy._r_path_)
 
         return copy
 
     def __call__(self, *args, _raise=False, _roam=False, _invoke=None, **kwargs):
-        if _raise and self._r_item is MISSING:
-            raise RoamPathException(self._r_path)
+        if _raise and self._r_item_ is MISSING:
+            raise RoamPathException(self._r_path_)
 
         # If an explicit callable is provided, call `_invoke(item, x, y, z)`
         if _invoke is not None:
-            call_result = _invoke(self._r_item, *args, **kwargs)
+            call_result = _invoke(self._r_item_, *args, **kwargs)
         # If item is callable: `.(x, y, z)` => `item(x, y, z)`
-        elif callable(self._r_item):
-            call_result = self._r_item(*args, **kwargs)
+        elif callable(self._r_item_):
+            call_result = self._r_item_(*args, **kwargs)
         # If item is not callable: `.()` => return wrapped item unchanged
         # TODO What to do if we get extra arguments when unwrapping uncallable?
         else:
-            call_result = self._r_item
+            call_result = self._r_item_
 
         # Re-wrap return as a `Roamer` if requested
         if _roam:
             copy = Roamer(self)
-            copy._r_item = call_result
+            copy._r_item_ = call_result
             return copy
         return call_result
 
     def __iter__(self):
         try:
-            self._r_item_iter = iter(self._r_item)
+            self._r_item__iter = iter(self._r_item_)
         except (AttributeError, TypeError):
-            self._r_item_iter = None
+            self._r_item__iter = None
         return self
 
     def __next__(self):
-        if self._r_item_iter is None:
+        if self._r_item__iter is None:
             raise StopIteration()
-        next_value = next(self._r_item_iter)
+        next_value = next(self._r_item__iter)
         return Roamer(next_value)
 
     def __eq__(self, other):
         if isinstance(other, Roamer):
-            return other._r_item == self._r_item
-        return other == self._r_item
+            return other._r_item_ == self._r_item_
+        return other == self._r_item_
 
     def __bool__(self):
-        return bool(self._r_item)
+        return bool(self._r_item_)
 
     def __str__(self):
-        if self._r_item is MISSING:
-            return f"<Roamer: {self._r_path.description()} => {self._r_item}>"
-        return f"<Roamer: {self._r_path.description()} => {self._r_item!r}>"
+        if self._r_item_ is MISSING:
+            return f"<Roamer: {self._r_path_.description()} => {self._r_item_}>"
+        return f"<Roamer: {self._r_path_.description()} => {self._r_item_!r}>"
 
 
 def r(item, _raise=False):
