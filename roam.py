@@ -36,8 +36,8 @@ class _Path:
 
     def __init__(self, initial_item, path_to_clone=None):
         if path_to_clone is not None:
-            for attr in ("_r_root_item_", "_r_steps_"):
-                setattr(self, attr, getattr(path_to_clone, attr))
+            self._r_root_item_ = path_to_clone._r_root_item_
+            self._r_steps_ = list(path_to_clone._r_steps_)  # Shallow copy list
         else:
             self._r_root_item_ = initial_item
             self._r_steps_ = []
@@ -172,6 +172,8 @@ class Roamer:
             try:
                 self._r_via_alternate_lookup_ = True
                 copy = self[attr_name]
+            except RoamPathException:
+                pass
             finally:
                 copy._r_path_.log_getattr(attr_name, copy)
                 self._r_via_alternate_lookup_ = False
@@ -238,6 +240,8 @@ class Roamer:
             try:
                 self._r_via_alternate_lookup_ = True
                 copy = getattr(self, key_or_index_or_slice)
+            except RoamPathException:
+                pass
             finally:
                 copy._r_path_.log_getitem(key_or_index_or_slice, copy)
                 self._r_via_alternate_lookup_ = False

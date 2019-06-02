@@ -425,3 +425,30 @@ class TestRoamer:
             str(r(python_filmography)[0].writers.name)
             == "<Roamer: missing step 3 .name for path <list>[0].writers.name at <list> => <Roam.MISSING>>"
         )
+
+    def test_path_survives_roamer_reuse(self):
+        roamer = r(github_data)
+
+        assert (
+            str(roamer[0].license.name)
+            == "<Roamer: <list>[0].license.name => 'Apache License 2.0'>"
+        )
+
+        assert (
+            str(roamer[1]["license"].name)
+            == "<Roamer: <list>[1]['license'].name => 'MIT License'>"
+        )
+
+        with pytest.raises(RoamPathException) as ex:
+            roamer[1].license.x(_raise=True)
+        assert (
+            str(ex.value)
+            == "<RoamPathException: missing step 3 .x for path <list>[1].license.x at <dict> with keys ['key', 'name', 'spdx_id', 'url']>"
+        )
+
+        with pytest.raises(RoamPathException) as ex:
+            roamer[1].license["name"].x(_raise=True)
+        assert (
+            str(ex.value)
+            == "<RoamPathException: missing step 4 .x for path <list>[1].license['name'].x at <str>>"
+        )
