@@ -118,7 +118,6 @@ class RoamPathException(Exception):
 class Roamer:
     # Internal state variables
     _r_item_ = None
-    _r_initial_item_ = None
     _r_path_ = None
     _r_is_multi_item_ = False
     # Options
@@ -129,17 +128,12 @@ class Roamer:
     def __init__(self, item, _raise=False):
         # Handle `item` that is itself a `Roamer`
         if isinstance(item, Roamer):
-            for attr in (
-                "_r_item_",
-                "_r_initial_item_",
-                "_r_is_multi_item_",
-                "_r_raise_",
-            ):
+            for attr in ("_r_item_", "_r_is_multi_item_", "_r_raise_"):
                 setattr(self, attr, getattr(item, attr))
-            self._r_path_ = _Path(item._r_initial_item_, item._r_path_)
+            self._r_path_ = _Path(item._r_item_, item._r_path_)
         else:
-            self._r_initial_item_ = self._r_item_ = item
-            self._r_path_ = _Path(self._r_initial_item_)
+            self._r_item_ = item
+            self._r_path_ = _Path(self._r_item_)
             self._r_raise_ = _raise
 
     def __getattr__(self, attr_name):
