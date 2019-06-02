@@ -28,15 +28,15 @@ _flatten = lambda l: tuple(itertools.chain.from_iterable(l))
 
 
 class _Path:
-    _r_initial_item_ = None
+    _r_root_item_ = None
     _r_steps_ = []
 
     def __init__(self, initial_item, path_to_clone=None):
         if path_to_clone is not None:
-            for attr in ("_r_initial_item_", "_r_steps_"):
+            for attr in ("_r_root_item_", "_r_steps_"):
                 setattr(self, attr, getattr(path_to_clone, attr))
         else:
-            self._r_initial_item_ = initial_item
+            self._r_root_item_ = initial_item
             self._r_steps_ = []
 
     def log_getattr(self, attr_name, roamer):
@@ -75,7 +75,7 @@ class _Path:
                 f"missing step {first_missing_index} {first_missing_desc} for path "
             )
 
-        result.append(f"<{type(self._r_initial_item_).__name__}>")
+        result.append(f"<{type(self._r_root_item_).__name__}>")
         result += [desc for desc, _ in self._r_steps_]
 
         if first_missing_index:
