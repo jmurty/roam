@@ -20,6 +20,9 @@ class _RoamMissingItem:
     def __str__(self):
         return "<Roam.MISSING>"
 
+    def __repr__(self):
+        return "<Roam.MISSING>"
+
 
 MISSING = _RoamMissingItem()
 
