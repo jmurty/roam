@@ -8,6 +8,7 @@ pytest = "*"
 pre-commit = "*"
 importlib-resources = "*"  # Required by pre-commit but not always installed...
 pytest-cov = "*"
+tox = "*"
 
 [packages]
 
