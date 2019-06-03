@@ -63,11 +63,14 @@ Compare that with the code contortions you might need without **roam**
 42
 
 # If you are not defensive, errors for invalid path aren't always helpful
-data["answer"]["to"]["the"]["the"]["ultimate"]["question"]  # => KeyError: 'the'
+>>> data["answer"]["to"]["the"]["the"]["ultimate"]["question"]
+Traceback (innermost last):
+KeyError: 'the'
 
 # Get just the path results available a collection
-[i["message"] for i in data["speciesByIntelligence"] if "message" in i]
-# => ['So long, and thanks for all the fish']
+>>> [i["message"] for i in data["speciesByIntelligence"] if "message" in i]
+['So long, and thanks for all the fish']
+
 ```
 
 
