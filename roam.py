@@ -1,3 +1,7 @@
+""" Easily traverse nested Python data structures """
+
+__version__ = "0.1"
+
 import re
 import itertools
 
