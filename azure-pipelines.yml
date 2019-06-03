@@ -23,6 +23,6 @@ steps:
   displayName: 'Use Python $(python.version)'
 
 - script: |
-    pip install pytest pytest-cov pytest-azurepipelines
+    pip install pytest pytest-cov
     pytest
   displayName: 'pytest'
