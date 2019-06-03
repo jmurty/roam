@@ -76,7 +76,7 @@ KeyError: 'the'
 
 ## Installation
 
-[Coming soon] Install **roam** with pip:
+Install **roam** with pip:
 
 ```
 $ pip install roam
