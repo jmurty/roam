@@ -82,7 +82,7 @@ Install **roam** with pip:
 $ pip install roam
 ``` 
 
-**roam** works with Python versions 3.4 and later.
+**roam** works with Python versions 3.6 and later.
 
 
 ## Core concepts
