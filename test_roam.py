@@ -452,3 +452,31 @@ class TestRoamer:
             str(ex.value)
             == "<RoamPathException: missing step 4 .x for path <list>[1].license['name'].x at <str>>"
         )
+
+    def test_roamer_clone_via_init(self):
+        r_license = r(github_data)[0].license
+
+        assert r_license == {
+            "key": "apache-2.0",
+            "name": "Apache License 2.0",
+            "spdx_id": "Apache-2.0",
+            "url": "https://api.github.com/licenses/apache-2.0",
+        }
+
+        # Ensure clone is identical in all ways that matter
+        r_clone = r(r_license)
+        assert r_clone == r_license
+        assert r_clone._r_item_ == r_license._r_item_
+        assert r_clone._r_is_multi_item_ == r_license._r_is_multi_item_
+        assert r_clone._r_raise_ == r_license._r_raise_ is False
+
+        # Can override raise status in clone
+        r_clone = r(r_license, _raise=True)
+        assert r_clone._r_raise_ is True
+        with pytest.raises(RoamPathException) as ex:
+            r_clone.wrong
+        assert (
+            str(ex.value)
+            == "<RoamPathException: missing step 3 .wrong for path <list>[0].license.wrong"
+            " at <dict> with keys ['key', 'name', 'spdx_id', 'url']>"
+        )

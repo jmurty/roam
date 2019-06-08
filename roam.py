@@ -132,7 +132,7 @@ class Roamer:
     # Temporary flags
     _r_via_alternate_lookup_ = False
 
-    def __init__(self, item, _raise=False):
+    def __init__(self, item, _raise=None):
         # Handle `item` that is itself a `Roamer`
         if isinstance(item, Roamer):
             for attr in ("_r_item_", "_r_is_multi_item_", "_r_raise_"):
@@ -141,7 +141,9 @@ class Roamer:
         else:
             self._r_item_ = item
             self._r_path_ = _Path(self._r_item_)
-            self._r_raise_ = _raise
+        # Set or override raise flag if user provided a value
+        if _raise is not None:
+            self._r_raise_ = bool(_raise)
 
     def __getattr__(self, attr_name):
         # Stop here if no item to traverse
@@ -306,7 +308,7 @@ class Roamer:
         return f"<Roamer: {self._r_path_.description()} => {self._r_item_!r}>"
 
 
-def r(item, _raise=False):
+def r(item, _raise=None):
     return Roamer(item, _raise=_raise)
 
 
