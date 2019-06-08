@@ -1,73 +1,88 @@
 # roam – Easily traverse nested Python data structures
 
-**roam** provides an API to more easily traverse nested data structures using standard Python syntax, without pesky error-handling at each step. 
+**roam** provides an API to more easily traverse nested data structures using standard Python syntax without pesky error-handling at each step. 
 
-**roam** lets you do this with nested data:
+[![Build Status](https://travis-ci.org/jmurty/roam.svg?branch=master)](https://travis-ci.org/jmurty/roam)
+[![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
+
+Here are some examples of **roam**ing nested data:
 ```python
 # Example data
 >>> data = {
-...   "answer": {"to": {"the": {"ultimate": {"question": 42}}}},
-...   "speciesByIntelligence": [
-...     {"name": "mice"},
-...     {"name": "dolphins", "message": "So long, and thanks for all the fish"},
-...     {"name": "humans"},
-...   ],
+...     "answer": {"to": {"the": {"ultimate": {"question": 42}}}},
+...     "speciesByIntelligence": [
+...         {"name": "mice"},
+...         {"name": "dolphins", "message": "So long, and thanks for all the fish"},
+...         {"name": "humans"},
+...     ],
 ... }
 
 
 # Wrap your data in a Roamer class
 >>> import roam
->>> r = roam.Roamer(data)
+>>> roamer = roam.Roamer(data)
 
 # Use dot notation to traverse `dict` keys
->>> r.answer.to.the.ultimate.question()
+>>> roamer.answer.to.the.ultimate.question()
 42
 
-# Or slice notation, or mix and match
->>> r["answer"].to.the["ultimate"].question() 
+# Slice notation still works, or you can mix and match
+>>> roamer["answer"].to.the["ultimate"].question() 
 42
 
-# An invalid path returns a MISSING item placeholder, not an error 
->>> answer = r.answer.to.the.WRONG.question()
+# Invalid paths don't raise an error, they return a MISSING marker object 
+>>> answer = roamer.answer.to.the.WRONG.question()
 >>> answer
 <Roam.MISSING>
 
-# You can check whether you got a valid result
->>> answer is roam.MISSING
-True
->>> if not answer:
-...  "Panic!"
-'Panic!'
+# The MISSING marker object is falsey in many dimensions
+>>> bool(answer)
+False
+>>> len(answer)
+0
+>>> [x for x in answer]
+[]
 
-# Or you can get a *helpful* exception, if you prefer  
+# This makes it easy to get data at a path or fall back to a default
+>>> roamer.non.existent.path() or "My fallback"
+'My fallback'
+>>> roamer.answer.to.the.ultimate() or "penultimate"
+{'question': 42}
+
+# If you would prefer an exception you can ask `roam` to raise one:  
 >>> try:
-...   r.answer.to.the.WRONG.question(_raise=True)
+...     roamer.answer.to.the.the.ultimate.question(_raise=True)
 ... except roam.RoamPathException as ex:
-...   str(ex)
-"<RoamPathException: missing step 4 .WRONG for path <dict>.answer.to.the.WRONG.question at <dict> with keys ['ultimate']>"
+...     str(ex)
+"<RoamPathException: missing step 4 .the for path <dict>.answer.to.the.the.ultimate.question at <dict> with keys ['ultimate']>"
 
-# Iterate over items
->>> [(i, species.name()) for i, species in enumerate(r.speciesByIntelligence)]
-[(0, 'mice'), (1, 'dolphins'), (2, 'humans')]
-
-# Slice a collection to return only matching paths
->>> r["speciesByIntelligence"][:].message()
+# And you can traverse collections in your data. Tell `roam` to handle collections with a slice
+# operator and its behaviour changes to *filter* results from valid paths, even deep paths
+>>> len(roamer["speciesByIntelligence"])
+3
+>>> roamer["speciesByIntelligence"][:].message()
 ('So long, and thanks for all the fish',)
 
 ```
 
-Compare that with the code contortions you might need without **roam**
+Compare that with the kind of code you might need without **roam**
 ```python
-# Traverse `dict` keys defensively, hoping you don't hit a `None` value
->>> data.get("answer", {}).get("to", {}).get("the", {}).get("ultimate", {}).get("question")
+# A  dotted path would be nicer here
+>>> data["answer"]["to"]["the"]["ultimate"]["question"]
 42
 
-# If you are not defensive, errors for invalid path aren't always helpful
+# Traversing `dict` keys defensively is ugly but works, unless you hit a `None` value part way
+>>> data.get("answer", {}).get("to", {}).get("the", {}).get("ultimate", {}).get("question") or "Oops"
+42
+>>> data.get("answer", {}).get("to", {}).get("the", {}).get("WRONG", {}).get("question") or "Oops"
+'Oops'
+
+# Standard errors for invalid paths aren't as clear
 >>> data["answer"]["to"]["the"]["the"]["ultimate"]["question"]
 Traceback (innermost last):
 KeyError: 'the'
 
-# Get just the path results available a collection
+# Filtering collections in your data is cumbersome
 >>> [i["message"] for i in data["speciesByIntelligence"] if "message" in i]
 ['So long, and thanks for all the fish']
 
@@ -112,6 +127,13 @@ These similar tools and libraries helped inspire and inform *roam*:
 - Django template language's [variable dot lookup](https://docs.djangoproject.com/en/2.2/ref/templates/language/#variables)
 - [glom](https://glom.readthedocs.io/) – "Restructuring data, the Python way."
 - [traversify](https://pypi.org/project/traversify/) – "Handy python classes for manipulating json data, providing syntactic sugar for less verbose, easier to write code."
+
+
+## Contributing
+
+- TODO: [Code of conduct](https://opensource.guide/code-of-conduct/)
+- We use the Black code formatter
+[![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black) 
 
 
 ## License
