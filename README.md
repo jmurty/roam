@@ -152,8 +152,8 @@ These similar tools and libraries helped inspire and inform *roam*:
 
 ## Contributing
 
-- TODO: [Code of conduct](https://opensource.guide/code-of-conduct/)
-- We use the Black code formatter
+- Contributors must follow the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md)
+- Code contributions must be formatted with Black for consistency
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black) 
 
 
