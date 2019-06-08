@@ -159,17 +159,17 @@ class Roamer:
             for i in self._r_item_:
                 try:
                     multi_items.append(getattr(i, attr_name))
-                except AttributeError:
+                except (TypeError, AttributeError):
                     try:
                         multi_items.append(i[attr_name])
-                    except (TypeError, KeyError, IndexError):
+                    except (TypeError, LookupError):
                         pass
             copy._r_item_ = tuple(multi_items)
         # Single item: `.xyz` => `item.xyz`
         else:
             try:
                 copy._r_item_ = getattr(copy._r_item_, attr_name)
-            except AttributeError:
+            except (TypeError, AttributeError):
                 # Attr lookup failed, no more attr lookup options
                 copy._r_item_ = MISSING
 
@@ -205,7 +205,7 @@ class Roamer:
             for i in self._r_item_:
                 try:
                     multi_items.append(i[key_or_index_or_slice])
-                except (TypeError, KeyError, IndexError):
+                except (TypeError, LookupError):
                     try:
                         multi_items.append(getattr(i, key_or_index_or_slice))
                     except (TypeError, AttributeError):
@@ -222,7 +222,7 @@ class Roamer:
         else:
             try:
                 copy._r_item_ = self._r_item_[key_or_index_or_slice]
-            except (TypeError, KeyError, IndexError):
+            except (TypeError, LookupError):
                 # Index lookup failed, no more index lookup options
                 copy._r_item_ = MISSING
 
@@ -284,7 +284,7 @@ class Roamer:
     def __iter__(self):
         try:
             self._r_item__iter = iter(self._r_item_)
-        except (AttributeError, TypeError):
+        except (TypeError, AttributeError):
             self._r_item__iter = None
         return self
 
