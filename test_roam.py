@@ -379,6 +379,20 @@ class TestRoamer:
     def test_roamer_equality(self):
         assert r(python_filmography)[:].writers == r(python_filmography)[:].writers
 
+    def test_roamer_len(self):
+        # Standard length lookup of list
+        assert len(r(python_filmography)) == 2
+
+        # Report 1 for current item that doesn't actually support `len()` instead of `TypeError`
+        assert len(r(python_filmography)[0]) == 1
+        with pytest.raises(TypeError):
+            len(python_filmography[0])
+
+        # Report zero from MISSING item
+        x = r(python_filmography).x
+        assert len(x) == 0
+        assert x == MISSING
+
     def test_path_reporting(self):
         assert (
             str(r(github_data0).license.name)

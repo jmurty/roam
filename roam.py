@@ -302,6 +302,15 @@ class Roamer:
     def __bool__(self):
         return bool(self._r_item_)
 
+    def __len__(self):
+        try:
+            return len(self._r_item_)
+        except TypeError:
+            # Here we know we have a non-MISSING item, but it doesn't support length lookups so
+            # must be a single thing...
+            # TODO This is black magic, does it make enough sense?
+            return 1
+
     def __str__(self):
         if self._r_item_ is MISSING:
             return f"<Roamer: {self._r_path_.description()} => {self._r_item_}>"
