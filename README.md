@@ -5,7 +5,7 @@
 [![Build Status](https://travis-ci.org/jmurty/roam.svg?branch=master)](https://travis-ci.org/jmurty/roam)
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
-Here are some examples of **roam**ing nested data:
+Here is a quick introduction to **roam**ing nested data:
 ```python
 # Example data
 >>> data = {
@@ -16,7 +16,6 @@ Here are some examples of **roam**ing nested data:
 ...         {"name": "humans"},
 ...     ],
 ... }
-
 
 # Wrap your data in a Roamer class
 >>> import roam
@@ -31,16 +30,16 @@ Here are some examples of **roam**ing nested data:
 42
 
 # Invalid paths don't raise an error, they return a MISSING marker object 
->>> answer = roamer.answer.to.the.WRONG.question()
->>> answer
+>>> result = roamer.answer.to.the.WRONG.question()
+>>> result
 <Roam.MISSING>
 
 # The MISSING marker object is falsey in many dimensions
->>> bool(answer)
+>>> bool(result)
 False
->>> len(answer)
+>>> len(result)
 0
->>> [x for x in answer]
+>>> [x for x in result]
 []
 
 # This makes it easy to get data at a path or fall back to a default
@@ -60,6 +59,8 @@ False
 # operator and its behaviour changes to *filter* results from valid paths, even deep paths
 >>> len(roamer["speciesByIntelligence"])
 3
+>>> roamer["speciesByIntelligence"][:].name()
+('mice', 'dolphins', 'humans')
 >>> roamer["speciesByIntelligence"][:].message()
 ('So long, and thanks for all the fish',)
 
@@ -100,20 +101,40 @@ $ pip install roam
 **roam** works with Python versions 3.6 and later.
 
 
-## Core concepts
+## Basics
 
-- create a `Roamer` with your data
-- express paths using Python "dot" or "index" syntax, in any combination. **roam* will perform attribute or index lookups as needed
-- "call" as a function to fetch the result 
-- the `roam.MISSING` placeholder
-- traverse collections with slices
-- rich path descriptions and exceptions
+**roam** works as a shim over data objects that intercepts Python operations and does extra work to make data traversal easier and more forgiving.
+
+There are three key steps you need to use **roam**:
+
+1. make a `Roamer` shim for your data with `roam.Roamer(data)` or with the more concise `r` alias `roam.r(data)`:  
+   `shim = roam.r(data)`
+2. express the path or paths to traverse through your data in Python attribute (dot) or key/index (slice) syntax
+   - you can use dot syntax whether the underlying objects support attribute or index lookups:   
+     `step = shim.path.to.traverse`
+   - you can also use key/index lookups if you prefer, or if you need to traverse a path that is not a valid Python attribute name:  
+     `step = shim.path.to["step through"]`
+   - if your data includes collections of items like lists, expressing a slice operation instructs **roam** to apply following path lookups to **each item** in the collection, and to ignore items in the collection that don't match the following path.  
+     Think of a slice in **roam** paths as being like a combined *for-each* and *filter*.  
+     You can process all items in the collection with the special `[:]` slice, or a subset using `[2:3]` etc:  
+     `step = shim.path.to.list[:].path.in.each.list.item`
+   - an integer index lookup will get the *i-th* item in a collection as you would expect:  
+     `step = shim.path.to.list[:].nested.list[0]  # first item in each nested list`
+3. retrieve a final result by *calling* the shim object, which tells **roam** to return the underlying data
+   - if the path you expressed was valid, you will get your result data:  
+     `result = step()`
+   - if the path included a slice operation to process items in a collection, the result will be a tuple of matching items:  
+     `multiple_results = step()` 
+   - if you expressed an invalid path, you will instead get the `roam.MISSING` marker object. You can check for this result directly, or rely on its falsey-ness:  
+     `assert step() is roam.MISSING`
+     `assert not step()`
 
 
 ## Advanced topics
 
-- **roam** is a shim (lookup order, equality, iteration, falsey-ness, truthiness)
-- `roam.MISSING` is falsey
+- falsey-ness of `roam.MISSING`
+- rich path descriptions and exceptions
+- **roam** is a shim (lookup order, equality, iteration, falsey-ness, truthiness, length)
 - call nested methods
 - re-wrap result of nested method call with the `_roam` option
 - fail fast with the `_raise` option
