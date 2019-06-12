@@ -5,87 +5,32 @@
 [![Build Status](https://travis-ci.org/jmurty/roam.svg?branch=master)](https://travis-ci.org/jmurty/roam)
 [![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
-Here is a quick introduction to **roam**ing nested data:
-```python
-# Example data
->>> data = {
-...     "answer": {"to": {"the": {"ultimate": {"question": 42}}}},
-...     "speciesByIntelligence": [
-...         {"name": "mice"},
-...         {"name": "dolphins", "message": "So long, and thanks for all the fish"},
-...         {"name": "humans"},
-...     ],
-... }
+There are three simple steps to use **roam**:
 
-# Wrap your data in a Roamer class
+1. Wrap your data in a `Roamer` shim
+2. Express the path or paths to traverse through your data with "dot" or "slice" notation, whichever you prefer
+3. Get the result by *calling* the `Roamer` shim object like a function.
+
+```python
+# Example nested data: nested dicts and class with attributes
+>>> import collections
+>>> Point = collections.namedtuple('Point', ['x', 'y'])
+>>> data = {"a": {"b": {"c": Point(100, 200)}}}
+
+# 1. Wrap your data in a Roamer shim
 >>> import roam
 >>> roamer = roam.Roamer(data)
 
-# Use dot notation to traverse `dict` keys
->>> roamer.answer.to.the.ultimate.question()
-42
+# 2. Express path to traverse
+>>> step = roamer.a.b.c.x
 
-# Slice notation still works, or you can mix and match
->>> roamer["answer"].to.the["ultimate"].question() 
-42
+# 3. Get result by calling the Roamer shim
+>>> step()
+100
 
-# Invalid paths don't raise an error, they return a MISSING marker object 
->>> result = roamer.answer.to.the.WRONG.question()
->>> result
-<Roam.MISSING>
-
-# The MISSING marker object is falsey in many dimensions
->>> bool(result)
-False
->>> len(result)
-0
->>> [x for x in result]
-[]
-
-# This makes it easy to get data at a path or fall back to a default
->>> roamer.non.existent.path() or "My fallback"
-'My fallback'
->>> roamer.answer.to.the.ultimate() or "penultimate"
-{'question': 42}
-
-# If you would prefer an exception you can ask `roam` to raise one:  
->>> try:
-...     roamer.answer.to.the.the.ultimate.question(_raise=True)
-... except roam.RoamPathException as ex:
-...     str(ex)
-"<RoamPathException: missing step 4 .the for path <dict>.answer.to.the.the.ultimate.question at <dict> with keys ['ultimate']>"
-
-# And you can traverse collections in your data. Tell `roam` to handle collections with a slice
-# operator and its behaviour changes to *filter* results from valid paths, even deep paths
->>> len(roamer["speciesByIntelligence"])
-3
->>> roamer["speciesByIntelligence"][:].name()
-('mice', 'dolphins', 'humans')
->>> roamer["speciesByIntelligence"][:].message()
-('So long, and thanks for all the fish',)
-
-```
-
-Compare that with the kind of code you might need without **roam**
-```python
-# A  dotted path would be nicer here
->>> data["answer"]["to"]["the"]["ultimate"]["question"]
-42
-
-# Traversing `dict` keys defensively is ugly but works, unless you hit a `None` value part way
->>> data.get("answer", {}).get("to", {}).get("the", {}).get("ultimate", {}).get("question") or "Oops"
-42
->>> data.get("answer", {}).get("to", {}).get("the", {}).get("WRONG", {}).get("question") or "Oops"
-'Oops'
-
-# Standard errors for invalid paths aren't as clear
->>> data["answer"]["to"]["the"]["the"]["ultimate"]["question"]
-Traceback (innermost last):
-KeyError: 'the'
-
-# Filtering collections in your data is cumbersome
->>> [i["message"] for i in data["speciesByIntelligence"] if "message" in i]
-['So long, and thanks for all the fish']
+# Put it all together slightly differently (read on for details)
+>>> roam.r(data).a.b.c['y']()
+200
 
 ```
 
@@ -98,39 +43,183 @@ Install **roam** with pip:
 $ pip install roam
 ``` 
 
-**roam** works with Python versions 3.6 and later.
+**roam** works with Python versions 3.6 and later and has no dependencies.
 
 
 ## Basics
 
-**roam** works as a shim over data objects that intercepts Python operations and does extra work to make data traversal easier and more forgiving.
+### `Roamer` shim
 
-There are three key steps you need to use **roam**:
+**roam** works by providing the `Roamer` class as a shim over your data objects, to intercepts Python operations and do some extra work to make it easier to traverse nested data.
 
-1. make a `Roamer` shim for your data with `roam.Roamer(data)` or with the more concise `r` alias `roam.r(data)`:  
-   `shim = roam.r(data)`
-2. express the path or paths to traverse through your data in Python attribute (dot) or key/index (slice) syntax
-   - you can use dot syntax whether the underlying objects support attribute or index lookups:   
-     `step = shim.path.to.traverse`
-   - you can also use key/index lookups if you prefer, or if you need to traverse a path that is not a valid Python attribute name:  
-     `step = shim.path.to["step through"]`
-   - if your data includes collections of items like lists, expressing a slice operation instructs **roam** to apply following path lookups to **each item** in the collection, and to ignore items in the collection that don't match the following path.  
-     Think of a slice in **roam** paths as being like a combined *for-each* and *filter*.  
-     You can process all items in the collection with the special `[:]` slice, or a subset using `[2:3]` etc:  
-     `step = shim.path.to.list[:].path.in.each.list.item`
-   - an integer index lookup will get the *i-th* item in a collection as you would expect:  
-     `step = shim.path.to.list[:].nested.list[0]  # first item in each nested list`
-3. retrieve a final result by *calling* the shim object, which tells **roam** to return the underlying data
-   - if the path you expressed was valid, you will get your result data:  
-     `result = step()`
-   - if the path included a slice operation to process items in a collection, the result will be a tuple of matching items:  
-     `multiple_results = step()` 
-   - if you expressed an invalid path, you will instead get the `roam.MISSING` marker object. You can check for this result directly, or rely on its falsey-ness:  
-     `assert step() is roam.MISSING`
-     `assert not step()`
+Get a shim objectg over your data by calling `roam.Roamer(data)` or you can use the shorter `r` alias: `roam.r(data)`
+
+### Traverse paths
+
+You traverse your data within the **roam** shim by expressing the path (or paths) to follow in Python attribute (dot) or key/index (slice) syntax.
+
+At each step you express in a path, **roam** returns a new `Roamer` shim that represents data at that point in the path and the steps taken up to there.
+
+Because **roam** intercepts and inteprets the path operations it can provide some nice features:
+
+- use dot syntax whether the data item supports attribute or index lookups:
+
+      >>> roam.r({"key": "value"}).key()
+      'value'
+
+- use slice syntax if you prefer, **roam** makes dot or slice operations work regardless of the underlying objects:
+
+      >>> roam.r(Point(x=1, y=2))["x"]()
+      1
+
+- mix and match dot and slice to your heart's content:
+
+      >>> roam.r({"point": Point(x=1, y=2)}).point["y"]()
+      2
+
+- use slice syntax to traverse a path step that cannot be a valid Python attribute name:  
+
+      >>> roam.r({"no-dash-in-attrs": "thanks"})["no-dash-in-attrs"]()
+      'thanks'
+
+Generally it makes no difference whether you choose dot or slice syntax to traverse a path, but in cases where an attribute and a key have the same name the choice can matter. Becase **roam** applies your chosen operation first, you can handle this situation by telling it what to do:
+
+```python
+>>> roamer = roam.r({"items": [1, 2, 3]})
+
+>>> roamer.items()
+dict_items([('items', [1, 2, 3])])
+
+>>> roamer["items"]()
+[1, 2, 3]
+
+```
 
 
-## Advanced topics
+
+### Get a result, or `MISSING`
+
+You get a final result by *calling* the shim `Roamer` object like a function with `()` parentheses, to tell **roam** to return the underlying data from behind the shim.
+
+If you expressed a valid path through your data you will get the result you expect.
+
+If you expressed an **invalid** path, **roam** will *not* complain or raise an exception. Instead, it will return a `roam.MISSING` marker object to let you know that there is no data available at the path.
+
+The `roam.MISSING` object is falsey in a number of ways, so you can either check for an invalid "missing" result directly or rely on its falsey behaviour:
+
+```python
+>>> roamer = roam.r(Point(x=1, y=2))
+
+# Check for the `roam.MISSING` object directly
+>>> roamer.z() is roam.MISSING
+True
+
+# Check indirectly via falsey behaviour
+>>> bool(roamer.z())
+False
+>>> len(roamer.z())
+0
+>>> [i for i in roamer.z()]
+[]
+
+# The falsey MISSING object makes it easy to fall back to a default
+>>> roamer.x() or "My fallback"
+1
+>>> roamer.z() or "My fallback"
+'My fallback'
+
+```
+
+Of course, sometimes it's better to fail very clearly with an exception. Use the `_raise` argument to trigger a rich `RoamPathException` instead of returning a `roam.MISSING` object:
+```python
+>>> try:
+...     roamer.x.y.z(_raise=True)
+... except roam.RoamPathException as ex:
+...     str(ex)
+'<RoamPathException: missing step 2 .y for path <Point>.x.y.z at <int> with attrs [bit_length, conjugate, denominator, from_bytes, imag, numerator, real, to_bytes]>'
+
+```
+
+### Traverse collections
+
+If your data includes collections of items such as a `list`, you can tell **roam** to iterate over the collection and apply following path lookups to **each item** in the collection instead of the collection as a whole.
+
+You do this with a standard slice operation that *would return a collection* in standard Python usage. Use the special `[:]` slice to iterate over all items in the collection, or a subset slice using `[2:3]` etc to iterate over a subset.
+
+When you traverse a collection with a slice operation, the final result is a `tuple` of data items.
+
+For example:
+```python
+>>> roamer = roam.r({
+...     "people": [
+...         {"name": "Alice", "age": 34},
+...         {"name": "Bob", "age": 42},
+...         {"name": "Trudy"},  # Unknown age
+...     ]
+... })
+
+# A `list` object does not have the attributee `name`
+>>> roamer.people.name()
+<Roam.MISSING>
+
+# Use the "all items" [:] slice operation to iterate over each item
+>>> roamer.people[:].name()
+('Alice', 'Bob', 'Trudy')
+
+# Get all but the last person names
+>>> roamer.people[:-1].name()
+('Alice', 'Bob')
+
+```
+
+**roam** handles collections differently from single items in the path in that it **ignores** items where the following path is invalid, filtering them out instead of returning `roam.MISSING` marker objects.
+
+You can think of a collection traversal in **roam** as being like a combined *for-each* and *filter*.
+
+```python
+# Alice is 34, Bob is 42, Trudy has no "age" data
+>>> roamer.people[:].age()
+(34, 42)
+
+```
+
+When traversing a collection, if you use an integer index lookup instead of a slice **roam** will return the single n*th* item from the collection as you would expect:
+
+```python
+>>> roamer.people[-1].name()
+'Trudy'
+
+```
+
+**WARNING**: **roam** has only *rudimentary* support for traversing nested collections. Simple cases should work, but if you need to traverse non-trivial collections data you should do the work with `for` loops in your code.
+
+```python
+>>> roamer = roam.r({
+...     "people": [
+...         {"name": "Alice", "pets": [
+...             {"type": "cat", "name": "Mog"},
+...             {"type": "dog", "name": "Spot"},
+...         ]},
+...         {"name": "Bob", "pets": [
+...             {"type": "budgie", "name": "Bertie"},
+...         ]},
+...     ]
+... })
+
+# We can get the names of the "pets" collection under the people "collection"
+>>> roamer.people[:].pets[:].name()
+('Mog', 'Spot', 'Bertie')
+
+# But roam may behave in strange ways: this WILL NOT give you the first pet name
+>>> roamer.people[:].pets[:].name[0]()
+'M'
+
+```
+
+
+## Advanced
+
+**TODO**
 
 - falsey-ness of `roam.MISSING`
 - rich path descriptions and exceptions
@@ -143,7 +232,7 @@ There are three key steps you need to use **roam**:
 
 ## Related projects
 
-These similar tools and libraries helped inspire and inform *roam*:
+These similar tools and libraries helped inspire and inform **roam**:
 
 - Django template language's [variable dot lookup](https://docs.djangoproject.com/en/2.2/ref/templates/language/#variables)
 - [glom](https://glom.readthedocs.io/) – "Restructuring data, the Python way."
