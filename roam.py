@@ -74,9 +74,7 @@ class _Path:
     def description(self):
         result = []
 
-        first_missing_index, first_missing_desc, first_missing_roamer = (
-            self.first_missing()
-        )
+        first_missing_index, first_missing_desc, _ = self.first_missing()
         if first_missing_index:
             result.append(
                 f"missing step {first_missing_index} {first_missing_desc} for path "
@@ -120,6 +118,7 @@ class _Path:
 
 class RoamPathException(Exception):
     def __init__(self, path):
+        super().__init__(self)
         self.path = path
 
     def __str__(self):
@@ -135,6 +134,7 @@ class Roamer:
     _r_raise_ = False
     # Temporary flags
     _r_via_alternate_lookup_ = False
+    _r_item__iter = None
 
     def __init__(self, item, _raise=None):
         # Handle `item` that is itself a `Roamer`
