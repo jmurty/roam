@@ -1,0 +1,8 @@
+[MESSAGES CONTROL]
+
+disable=bad-continuation,protected-access,invalid-name
+
+[FORMAT]
+
+# Match black formatting rule
+max-line-length=120
