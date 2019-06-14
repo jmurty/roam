@@ -359,7 +359,7 @@ class TestRoamer:
             "Monty Python",
         )
 
-        # Check "identity" slice does nothing within multi-item processing
+        # Check slices work within multi-item processing
         assert (
             r(python_filmography)[:].writers.name[:]
             == r(python_filmography)[:].writers.name
@@ -368,7 +368,12 @@ class TestRoamer:
             r(python_filmography)[:]["writers"]["name"][:]
             == r(python_filmography)[:]["writers"]["name"]
         )
+        assert r(python_filmography)[:].writers.name[1:-1] == (
+            "Neil Innes",
+            "Douglas Adams",
+        )
 
+        # Check integer lookpus work within multi-item processing
         assert r(python_filmography)[:]["writers"][1]["name"] == "Neil Innes"
 
         assert r(python_filmography)[:].writers[1].name == "Neil Innes"

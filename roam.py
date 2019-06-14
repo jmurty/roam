@@ -206,7 +206,7 @@ class Roamer:
 
         copy = Roamer(self)
         # Multi-item: `[xyz]` => `(i[xyz] for i in item)`
-        if copy._r_is_multi_item_:
+        if copy._r_is_multi_item_ and not isinstance(key_or_index_or_slice, slice):
             # Flatten item if we have selected a specific integer index
             if isinstance(key_or_index_or_slice, int):
                 try:
@@ -215,9 +215,6 @@ class Roamer:
                     copy._r_item_ = MISSING
                 # No longer in a multi-item if we have selected a specific index item
                 copy._r_is_multi_item_ = False
-            # Do nothing for "identity" slice `[:]`
-            elif key_or_index_or_slice == slice(None, None, None):
-                pass
             # Otherwise apply slice lookup to each of multiple items
             else:
                 multi_items = []
@@ -235,7 +232,7 @@ class Roamer:
                     elif lookup is not None:
                         multi_items.append(lookup)
                 copy._r_item_ = tuple(multi_items)
-        # Single item: `[xyz]` => `item[xyz]`
+        # Lookup for non-multi item data, or for slice lookups in all cases
         else:
             try:
                 copy._r_item_ = copy._r_item_[key_or_index_or_slice]
