@@ -39,7 +39,7 @@ There are three simple steps to use **roam**:
 
 Install **roam** with pip:
 
-```
+```bash
 $ pip install roam
 ``` 
 
@@ -52,7 +52,7 @@ $ pip install roam
 
 **roam** works by providing the `Roamer` class as a shim over your data objects, to intercepts Python operations and do some extra work to make it easier to traverse nested data.
 
-Get a shim objectg over your data by calling `roam.Roamer(data)` or you can use the shorter `r` alias: `roam.r(data)`
+Get a shim object over your data by calling `roam.Roamer(data)` or you can use the shorter `r` alias: `roam.r(data)`
 
 ### Traverse paths
 
@@ -60,29 +60,41 @@ You traverse your data within the **roam** shim by expressing the path (or paths
 
 At each step you express in a path, **roam** returns a new `Roamer` shim that represents data at that point in the path and the steps taken up to there.
 
-Because **roam** intercepts and inteprets the path operations it can provide some nice features:
+Because **roam** intercepts and interprets the path operations it can provide some nice features:
 
 - use dot syntax whether the data item supports attribute or index lookups:
 
-      >>> roam.r({"key": "value"}).key()
-      'value'
+  ```python
+  >>> roam.r({"key": "value"}).key()
+  'value'
+
+  ```
 
 - use slice syntax if you prefer, **roam** makes dot or slice operations work regardless of the underlying objects:
 
-      >>> roam.r(Point(x=1, y=2))["x"]()
-      1
+  ```python
+  >>> roam.r(Point(x=1, y=2))["x"]()
+  1
+
+  ```
 
 - mix and match dot and slice to your heart's content:
 
-      >>> roam.r({"point": Point(x=1, y=2)}).point["y"]()
-      2
+  ```python
+  >>> roam.r({"point": Point(x=1, y=2)}).point["y"]()
+  2
+
+  ```
 
 - use slice syntax to traverse a path step that cannot be a valid Python attribute name:  
 
-      >>> roam.r({"no-dash-in-attrs": "thanks"})["no-dash-in-attrs"]()
-      'thanks'
+  ```python
+  >>> roam.r({"no-dash-in-attrs": "thanks"})["no-dash-in-attrs"]()
+  'thanks'
 
-Generally it makes no difference whether you choose dot or slice syntax to traverse a path, but in cases where an attribute and a key have the same name the choice can matter. Becase **roam** applies your chosen operation first, you can handle this situation by telling it what to do:
+  ```
+
+Generally it makes no difference whether you choose dot or slice syntax to traverse a path, but in cases where an attribute and a key have the same name the choice can matter. Because **roam** applies your chosen operation first, you can handle this situation by telling it what to do:
 
 ```python
 >>> roamer = roam.r({"items": [1, 2, 3]})
@@ -94,8 +106,6 @@ dict_items([('items', [1, 2, 3])])
 [1, 2, 3]
 
 ```
-
-
 
 ### Get a result, or `MISSING`
 
@@ -136,7 +146,7 @@ Of course, sometimes it's better to fail very clearly with an exception. Use the
 ...     roamer.x.y.z(_raise=True)
 ... except roam.RoamPathException as ex:
 ...     str(ex)
-'<RoamPathException: missing step 2 .y for path <Point>.x.y.z at <int> with attrs [bit_length, conjugate, denominator, from_bytes, imag, numerator, real, to_bytes]>'
+'<RoamPathException: missing step 2 .y for path <Point>.x.y.z at <int>>'
 
 ```
 
@@ -251,17 +261,17 @@ These similar tools and libraries helped inspire and inform **roam**:
  **roam** is licensed under Apache, Version 2.0
 
 ```text
-   Copyright 2019 James Murty
+Copyright 2019 James Murty
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-       http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 ```
