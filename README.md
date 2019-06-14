@@ -217,12 +217,12 @@ When traversing a collection, if you use an integer index lookup instead of a sl
 ... })
 
 # We can get the names of the "pets" collection under the people "collection"
->>> roamer.people[:].pets[:].name()
+>>> roamer.people[:].pets.name()
 ('Mog', 'Spot', 'Bertie')
 
-# But roam may behave in strange ways: this WILL NOT give you the first pet name
->>> roamer.people[:].pets[:].name[0]()
-'M'
+# And look up just the n-th result at at a given level
+>>> roamer.people[:].pets.name[0]()
+'Mog'
 
 ```
 

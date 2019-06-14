@@ -30,9 +30,6 @@ class _RoamMissingItem:
 
 MISSING = _RoamMissingItem()
 
-# From Alex Martelli in comment on https://stackoverflow.com/a/952952/4970
-_flatten = lambda l: tuple(itertools.chain.from_iterable(l))
-
 
 class _Path:
     _r_root_item_ = None
@@ -161,13 +158,18 @@ class Roamer:
         if self._r_is_multi_item_:
             multi_items = []
             for i in self._r_item_:
+                lookup = None
                 try:
-                    multi_items.append(getattr(i, attr_name))
+                    lookup = getattr(i, attr_name)
                 except (TypeError, AttributeError):
                     try:
-                        multi_items.append(i[attr_name])
+                        lookup = i[attr_name]
                     except (TypeError, LookupError):
                         pass
+                if isinstance(lookup, (tuple, list, range)):
+                    multi_items += lookup
+                elif lookup is not None:
+                    multi_items.append(lookup)
             copy._r_item_ = tuple(multi_items)
         # Single item: `.xyz` => `item.xyz`
         else:
@@ -204,41 +206,46 @@ class Roamer:
 
         copy = Roamer(self)
         # Multi-item: `[xyz]` => `(i[xyz] for i in item)`
-        if self._r_is_multi_item_:
-            multi_items = []
-            for i in self._r_item_:
-                try:
-                    multi_items.append(i[key_or_index_or_slice])
-                except (TypeError, LookupError):
-                    try:
-                        multi_items.append(getattr(i, key_or_index_or_slice))
-                    except (TypeError, AttributeError):
-                        pass
+        if copy._r_is_multi_item_:
+            # Flatten item if we have selected a specific integer index
             if isinstance(key_or_index_or_slice, int):
-                # Flatten item if we have selected a specific index item
-                if multi_items:
-                    copy._r_item_ = multi_items[0]
-                else:
+                try:
+                    copy._r_item_ = copy._r_item_[key_or_index_or_slice]
+                except (TypeError, LookupError):
                     copy._r_item_ = MISSING
+                # No longer in a multi-item if we have selected a specific index item
+                copy._r_is_multi_item_ = False
+            # Do nothing for "identity" slice `[:]`
+            elif key_or_index_or_slice == slice(None, None, None):
+                pass
+            # Otherwise apply slice lookup to each of multiple items
             else:
+                multi_items = []
+                for i in copy._r_item_:
+                    lookup = None
+                    try:
+                        lookup = i[key_or_index_or_slice]
+                    except (TypeError, LookupError):
+                        try:
+                            lookup = getattr(i, key_or_index_or_slice)
+                        except (TypeError, AttributeError):
+                            pass
+                    if isinstance(lookup, (tuple, list, range)):
+                        multi_items += lookup
+                    elif lookup is not None:
+                        multi_items.append(lookup)
                 copy._r_item_ = tuple(multi_items)
         # Single item: `[xyz]` => `item[xyz]`
         else:
             try:
-                copy._r_item_ = self._r_item_[key_or_index_or_slice]
+                copy._r_item_ = copy._r_item_[key_or_index_or_slice]
             except (TypeError, LookupError):
                 # Index lookup failed, no more index lookup options
                 copy._r_item_ = MISSING
 
         # Flag the fact our item actually has multiple elements
         if isinstance(key_or_index_or_slice, slice):
-            # Flatten item if we are are going deeper into nested multi-items
-            if copy._r_is_multi_item_:
-                copy._r_item_ = _flatten(self._r_item_)
             copy._r_is_multi_item_ = True
-        elif isinstance(key_or_index_or_slice, int):
-            # No longer in a multi-item if we have selected a specific index item
-            copy._r_is_multi_item_ = False
 
         # Fall back to `self.__getattr__()` if lookup failed so far and we didn't come from there
         if (

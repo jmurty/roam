@@ -314,7 +314,7 @@ class TestRoamer:
 
         assert [
             writer.name()
-            for writer in r(python_filmography)[:].writers[:]
+            for writer in r(python_filmography)[:].writers
             if not writer.group
         ] == ["Neil Innes", "Douglas Adams"]
 
@@ -346,17 +346,27 @@ class TestRoamer:
             "Monty Python's Flying Circus",
             "Monty Python and the Holy Grail",
         )
-        assert r(python_filmography)[:]["writers"][:]["name"] == (
+        assert r(python_filmography)[:]["writers"]["name"] == (
             "Monty Python",
             "Neil Innes",
             "Douglas Adams",
             "Monty Python",
         )
-        assert r(python_filmography)[:].writers[:].name == (
+        assert r(python_filmography)[:].writers.name == (
             "Monty Python",
             "Neil Innes",
             "Douglas Adams",
             "Monty Python",
+        )
+
+        # Check "identity" slice does nothing within multi-item processing
+        assert (
+            r(python_filmography)[:].writers.name[:]
+            == r(python_filmography)[:].writers.name
+        )
+        assert (
+            r(python_filmography)[:]["writers"]["name"][:]
+            == r(python_filmography)[:]["writers"]["name"]
         )
 
         assert r(python_filmography)[:]["writers"][1]["name"] == "Neil Innes"
@@ -372,9 +382,9 @@ class TestRoamer:
         assert r(python_filmography)[:]["title"]["x"] == tuple()
 
         # Referencing *sometimes* missing attr/keys results in partial list
-        assert len(r(python_filmography)[:].writers[:]()) == 4
-        assert r(python_filmography)[:].writers[:].group == (True, True)
-        assert r(python_filmography)[:]["writers"][:]["group"] == (True, True)
+        assert len(r(python_filmography)[:].writers) == 4
+        assert r(python_filmography)[:].writers.group == (True, True)
+        assert r(python_filmography)[:]["writers"]["group"] == (True, True)
 
     def test_roamer_equality(self):
         assert r(python_filmography)[:].writers == r(python_filmography)[:].writers
@@ -420,13 +430,13 @@ class TestRoamer:
         )
 
         assert (
-            str(r(python_filmography)[:].writers[2]["age"])
-            == "<Roamer: missing step 4 ['age'] for path <list>[:].writers[2]['age'] at <DataTester> with attrs [name] => <Roam.MISSING>>"
+            str(r(python_filmography)[:].writers[3]["name"])
+            == "<Roamer: <list>[:].writers[3]['name'] => 'Monty Python'>"
         )
 
         assert (
-            str(r(python_filmography)[:].writers[3]["name"])
-            == "<Roamer: missing step 3 [3] for path <list>[:].writers[3]['name'] at <tuple> with length 2 => <Roam.MISSING>>"
+            str(r(python_filmography)[:].writers[2]["age"])
+            == "<Roamer: missing step 4 ['age'] for path <list>[:].writers[2]['age'] at <DataTester> with attrs [name] => <Roam.MISSING>>"
         )
 
         assert (
