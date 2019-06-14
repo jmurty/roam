@@ -92,9 +92,13 @@ class _Path:
 
                 # Generate hints
                 last_found_data = last_found_roamer()
-                if isinstance(last_found_data, (tuple, list)):
+                if isinstance(last_found_data, (tuple, list, set, range)):
                     if re.match(r"\[\d+\]", first_missing_desc):
                         result.append(f" with length {len(last_found_data)}")
+                elif isinstance(
+                    last_found_data, (str, int, float, complex, bool, bytes, bytearray)
+                ):
+                    pass  # No hint for primitive types
                 else:
                     try:
                         keys = last_found_data.keys()
