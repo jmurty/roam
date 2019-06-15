@@ -391,6 +391,15 @@ class TestRoamer:
         assert r(python_filmography)[:].writers.group == (True, True)
         assert r(python_filmography)[:]["writers"]["group"] == (True, True)
 
+        # Lookup missing n-th item in a nested collection
+        assert r(python_filmography)[:].writers.group[2] == MISSING
+        with pytest.raises(RoamPathException) as ex:
+            r(python_filmography)[:].writers.group[2](_raise=True)
+        assert (
+            str(ex.value)
+            == "<RoamPathException: missing step 4 [2] for path <list>[:].writers.group[2] at <tuple> with length 2>"
+        )
+
     def test_roamer_equality(self):
         assert r(python_filmography)[:].writers == r(python_filmography)[:].writers
 
