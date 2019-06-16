@@ -3,7 +3,6 @@
 __version__ = "0.1"
 
 import re
-import itertools
 
 
 class _RoamMissingItem:
