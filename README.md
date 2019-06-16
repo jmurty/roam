@@ -97,11 +97,14 @@ Because **roam** intercepts and interprets the path operations it can provide so
 Generally it makes no difference whether you choose dot or slice syntax to traverse a path, but in cases where an attribute and a key have the same name the choice can matter. Because **roam** applies your chosen operation first, you can handle this situation by telling it what to do:
 
 ```python
+# Data with ambiguous "items" name: keyword in dict, and dict method
 >>> roamer = roam.r({"items": [1, 2, 3]})
 
+# A dot lookup returns the dict method, which probably isn't what you want...
 >>> roamer.items()
 dict_items([('items', [1, 2, 3])])
 
+# ...so use a slice lookup instead. Roam will then do a slice lookup first
 >>> roamer["items"]()
 [1, 2, 3]
 
