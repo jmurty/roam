@@ -245,11 +245,13 @@ When traversing a collection, if you use an integer index lookup instead of a sl
 
 ## Related projects
 
-These similar tools and libraries helped inspire and inform **roam**:
+These similar tools and libraries inspired and informed **roam**:
 
-- Django template language's [variable dot lookup](https://docs.djangoproject.com/en/2.2/ref/templates/language/#variables)
-- [glom](https://glom.readthedocs.io/) – "Restructuring data, the Python way."
-- [traversify](https://pypi.org/project/traversify/) – "Handy python classes for manipulating json data, providing syntactic sugar for less verbose, easier to write code."
+- [glom](https://glom.readthedocs.io/) – *Restructuring data, the Python way.*  
+  This library's data access and [glom.T](https://glom.readthedocs.io/en/latest/api.html#glom.T) components do everything **roam** does and more, while **roam** aims to be smaller and simpler. If you find **roam** too limiting, **glom** is the library you want.
+- The Django template language's [variable dot lookup](https://docs.djangoproject.com/en/2.2/ref/templates/language/#variables) gave us a taste for dot-path data traversal in the first place.
+- [jmespath](https://pypi.org/project/jmespath/) – *JMESPath (pronounced “james path”) allows you to declaratively specify how to extract elements from a JSON document.*
+- [traversify](https://pypi.org/project/traversify/) – *Handy python classes for manipulating json data, providing syntactic sugar for less verbose, easier to write code.*
 
 
 ## Contributing
