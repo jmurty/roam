@@ -303,6 +303,7 @@ class Roamer:
 
     def __eq__(self, other):
         if isinstance(other, Roamer):
+            # TODO Fill in these comparisons to get real equality check
             return other._r_item_ == self._r_item_
         return other == self._r_item_
 
@@ -322,6 +323,9 @@ class Roamer:
         if self._r_item_ is MISSING:
             return f"<Roamer: {self._r_path_.description()} => {self._r_item_}>"
         return f"<Roamer: {self._r_path_.description()} => {self._r_item_!r}>"
+
+    def __repr__(self):
+        return str(self)
 
 
 def r(item, _raise=None):
