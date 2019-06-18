@@ -9,6 +9,7 @@ author = "James Murty"
 author-email = "james@murty.co"
 home-page = "https://github.com/jmurty/roam/"
 requires-python=">=3.6"
+license="Apache 2.0"
 classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
