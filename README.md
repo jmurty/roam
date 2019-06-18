@@ -212,7 +212,7 @@ When traversing a collection, if you use an integer index lookup instead of a sl
 
 ```
 
-**WARNING**: **roam** has only rudimentary support for traversing nested collections: it always flattens the data. This should be fine for simple situations, but if you need to traverse non-trivial collections data and return nested collections you should either do this work with `for` loops in Python code or try the related project [glom](#related-projects) as an alternative.
+**WARNING**: **roam** has only rudimentary support for traversing nested collections: it always flattens the data. This should be fine for simple situations, but if you need to get nested results from collections you will need to use nested loops in Python code, or try the related project [glom](#related-projects) as an alternative.
 
 ```python
 # Double nested collections: "people" then "pets"
@@ -243,15 +243,158 @@ When traversing a collection, if you use an integer index lookup instead of a sl
 
 ## Advanced
 
-**TODO**
+### Raise exceptions by default
 
-- falsey-ness of `roam.MISSING`
-- rich path descriptions and exceptions
-- **roam** is a shim (lookup order, equality, iteration, falsey-ness, truthiness, length)
-- call nested methods
-- re-wrap result of nested method call with the `_roam` option
-- fail fast with the `_raise` option
-- call arbitrary functions with the `_invoke` option
+If you dislike getting `roam.MISSING` marker objects instead of an exception when you express an invalid path, you can provide a `_raise` parameter when constructing a `Roamer` object to have it raise exceptions instead. This sets a preference that will apply to all future generated shim objects:
+```python
+>>> roamer = roam.r(
+...     {"valid": {"stillValid": 123}},
+...     _raise=True  # Raise exception on invalid path
+... )
+
+>>> roamer.valid.stillValid
+<Roamer: <dict>.valid.stillValid => 123>
+
+>>> try:
+...     roamer.valid.stillValid.nope
+... except roam.RoamPathException as ex:
+...     str(ex)
+'<RoamPathException: missing step 3 .nope for path <dict>.valid.stillValid.nope at <int>>'
+
+```
+
+
+### Work with `Roamer` shim objects directly
+
+Although the main goal of the `Roamer` shim object is to traverse paths through your data, it has additional features to let you work with your data without the need to *call* the shim.
+
+A `Roamer` object lets you:
+
+- perform equality comparisons on the underlying data, so you can check whether your data matches expected values while it is still within the shim:
+
+  ```python
+  >>> roamer = roam.r({"name": ["my", "test", "values"]})
+
+  # Checking equality of returned data works as you expect
+  >>> roamer.name() == ["my", "test", "values"]
+  True
+
+  # But you can also check equality without calling the shim
+  >>> roamer.name == ["my", "test", "values"]
+  True
+
+  ```
+
+- iterate over your data and get a `Roamer` shim for each item, so you can keep traversing deeper within collections:
+
+  ```python
+  >>> roamer = roam.r({"members": [
+  ...     {"name": "John"}, {"name": "Paul"}, {"name": "George"}, {"name": "Ringo"},
+  ... ]})
+
+  # You can iterate over returned data as you expect
+  >>> [member for member in roamer.members()]
+  [{'name': 'John'}, {'name': 'Paul'}, {'name': 'George'}, {'name': 'Ringo'}]
+
+  # But you can also iterate over the shim, and get a shim for each data item
+  >>> [member.name() for member in roamer.members]
+  ['John', 'Paul', 'George', 'Ringo']
+
+  # Iterating over an invalid path will simply return no results
+  >>> [member.name() for member in roamer.wrong.path]
+  []
+
+  ```
+
+- get the length of your underlying data:
+
+  ```python
+  # len() on the shim returns the length of your underlying data
+  >>> len(roamer.members)
+  4
+
+  # len() for an invalid path returns zero
+  >>> len(roamer.wrong.path)
+  0
+
+  ```
+
+- get the truthiness of your underlying data:
+
+  ```python
+  >>> if roamer.members:
+  ...     "Truthy"
+  'Truthy'
+
+  >>> if not roamer.wrong.path:
+  ...     "Falsey"
+  'Falsey'
+
+  ```
+
+### Call methods on or in your data
+
+Calling a `Roamer` shim with `()` returns the underlying data, but this mechanism has more powerful features. It also lets call methods on or in your data with arguments you provide, or invoke arbitrary functions.
+
+If your path ends at a *callable* object, **roam** will perform that call while returning your data:
+```python
+>>> roamer = roam.r({"callables": [
+...     lambda: "I was called when returned",
+...     lambda a, b: f"I was called with {a} and {b} which sum to {a + b}",
+... ]})
+
+# A basic () call on a shim invokes the callable object before returning
+>>> roamer.callables[0]()
+'I was called when returned'
+
+# Arguments are passed through to the callable when returning
+>>> roamer.callables[1](3, 5)
+'I was called with 3 and 5 which sum to 8'
+
+```
+
+You can pass a function in to **roam** with the `_invoke` parameter when returning data to invoke that function with your underlying data as the first argument:
+```python
+>>> roamer = roam.r({"unsorted": [4, 6, 2, 9]})
+
+# We can get our data directly, but it would be nice if it was sorted
+>>> roamer.unsorted()
+[4, 6, 2, 9]
+
+# Get roam to do the sorting for us using Python's built-in function
+>>> roamer.unsorted(_invoke=sorted)
+[2, 4, 6, 9]
+
+```
+
+If you need to invoke a callable in your data and then continue traversing its results, you can tell **roam** to re-wrap the result of a call in another shim with the `_roam` parameter:
+```python
+>>> roamer = roam.r({"callables": [
+...    lambda: {"more": {"nested": "data"}},
+...    lambda: {"more": {"nested": "data"}},
+... ]})
+
+# The callable returns nested data
+>>> roamer.callables[0]()
+{'more': {'nested': 'data'}}
+
+# Re-wrap the result of the callable in a new shim
+>>> shim_result = roamer.callables[0](_roam=True)
+>>> shim_result
+<Roamer: <dict>.callables[0] => {'more': {'nested': 'data'}}>
+
+>>> shim_result.more.nested()
+'data'
+
+```
+
+### A note on naming of parameters and internal variables
+
+Because **roam** uses some voodoo to intercept and reinterpret path operations expressed in standard Python syntax, the library must avoid naming parameters or internal variables in a way that will clash with names in your real data.
+
+For this reason the parameters you can pass when creating a `Roamer` object or calling it to return data are awkwardly named. Hopefully the parameters `_invoke`, `_roam`, and `_raise` will not match parameters you want to pass through the shim to callables in your data.
+
+Similarly the internal variable names within `Roamer` have nasty names like `_r_item_` and `_r_path_` which should be *very* unlikely to clash with key or attribute names in real-world data. If you do have names like this in your data, stop it!
 
 
 ## Related projects
