@@ -20,11 +20,8 @@ class _RoamMissingItem:
     def __next__(self):
         raise StopIteration()
 
-    def __str__(self):
-        return "<Roam.MISSING>"
-
     def __repr__(self):
-        return "<Roam.MISSING>"
+        return "<MISSING>"
 
 
 MISSING = _RoamMissingItem()
@@ -118,7 +115,7 @@ class RoamPathException(Exception):
         self.path = path
 
     def __str__(self):
-        return f"<{type(self).__name__}: {self.path.description()}>"
+        return f"<RoamPathException: {self.path.description()}>"
 
 
 class Roamer:
@@ -319,13 +316,8 @@ class Roamer:
             # TODO This is black magic, does it make enough sense?
             return 1
 
-    def __str__(self):
-        if self._r_item_ is MISSING:
-            return f"<Roamer: {self._r_path_.description()} => {self._r_item_}>"
-        return f"<Roamer: {self._r_path_.description()} => {self._r_item_!r}>"
-
     def __repr__(self):
-        return str(self)
+        return f"<Roamer: {self._r_path_.description()} => {self._r_item_!r}>"
 
 
 def r(item, _raise=None):

@@ -450,18 +450,18 @@ class TestRoamer:
 
         assert (
             str(r(python_filmography)[:].writers[2]["age"])
-            == "<Roamer: missing step 4 ['age'] for path <list>[:].writers[2]['age'] at <DataTester> with attrs [name] => <Roam.MISSING>>"
+            == "<Roamer: missing step 4 ['age'] for path <list>[:].writers[2]['age'] at <DataTester> with attrs [name] => <MISSING>>"
         )
 
         assert (
             str(r(github_data0).license["x"])
             == "<Roamer: missing step 2 ['x'] for path <dict>.license['x'] at <dict>"
-            " with keys ['key', 'name', 'spdx_id', 'url'] => <Roam.MISSING>>"
+            " with keys ['key', 'name', 'spdx_id', 'url'] => <MISSING>>"
         )
 
         assert (
             str(r(python_filmography)[0].writers.name)
-            == "<Roamer: missing step 3 .name for path <list>[0].writers.name at <list> => <Roam.MISSING>>"
+            == "<Roamer: missing step 3 .name for path <list>[0].writers.name at <list> => <MISSING>>"
         )
 
     def test_path_survives_roamer_reuse(self):

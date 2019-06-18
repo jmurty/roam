@@ -130,7 +130,7 @@ You can check for the `roam.MISSING` marker object directly if you want, but thi
 ```python
 >>> roamer = roam.r(Point(x=100, y=200))
 
-# Check for the `roam.MISSING` object directly
+# Check for the <MISSING> object directly
 >>> result = roamer.z()
 >>> result is roam.MISSING
 True
@@ -174,7 +174,7 @@ To help you know where you are when traversing your data, or where your traversa
 
 # ...and where you went wrong
 >>> roamer.a.b[9]
-<Roamer: missing step 3 [9] for path <dict>.a.b[9] at <list> with length 2 => <Roam.MISSING>>
+<Roamer: missing step 3 [9] for path <dict>.a.b[9] at <list> with length 2 => <MISSING>>
 
 # As does the RoamPathException you can optionally trigger
 >>> roamer.a[9].all["kinds"].of.WRONG(_raise=True)
@@ -209,7 +209,7 @@ Some examples:
 
 # A `list` object does not have the attribute "name"
 >>> roamer.people.name()
-<Roam.MISSING>
+<MISSING>
 
 # Use the "all items" [:] slice operation to iterate over item in `people`
 >>> roamer.people[:].name()
