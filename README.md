@@ -161,6 +161,28 @@ Of course, sometimes it may be better for your path traversal to fail very expli
 
 ```
 
+### Helpful path descriptions and exceptions
+
+To help you know where you are when traversing your data, or where your traversal path went wrong, **roam** keeps track of the path you have taken and presents it in the descriptive text of `Roamer` and `RoamPathExcepton` objects.
+
+```python
+>>> roamer = roam.r({"a": {"b": ["value1", "value2"]}})
+
+# The Roamer `repr` / `str` description tells you where you are...
+>>> roamer.a.b[0]
+<Roamer: <dict>.a.b[0] => 'value1'>
+
+# ...and where you went wrong
+>>> roamer.a.b[9]
+<Roamer: missing step 3 [9] for path <dict>.a.b[9] at <list> with length 2 => <Roam.MISSING>>
+
+# As does the RoamPathException you can optionally trigger
+>>> roamer.a[9].all["kinds"].of.WRONG(_raise=True)
+Traceback (most recent call last):
+roam.RoamPathException: <RoamPathException: missing step 2 [9] for path <dict>.a[9].all['kinds'].of.WRONG at <dict> with keys ['b']>
+
+```
+
 ### Traverse collections
 
 If your data includes collections of items such as a `list`, you can tell **roam** to iterate over the collection and apply following path lookups to *each item* in the collection instead of the collection as a whole.
