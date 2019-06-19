@@ -267,22 +267,29 @@ When traversing a collection, if you use an integer index lookup instead of a sl
 
 ### Raise exceptions by default
 
-If you dislike getting `roam.MISSING` marker objects instead of an exception when you express an invalid path, you can provide a `_raise` parameter when constructing a `Roamer` object to have it raise exceptions instead. This sets a preference that will apply to all future generated shim objects:
-```python
->>> roamer = roam.r(
-...     {"valid": {"stillValid": 123}},
-...     _raise=True  # Raise exception on invalid path
-... )
+If you dislike getting `roam.MISSING` marker objects instead of an exception when you express an invalid path, you can make **roam** raise an exception immediately by setting a preference flag that will apply to all future generated shim objects.
 
+Provide the `_raise` parameter when constructing a `Roamer` object or use the `roam.r_strict` helper function:
+
+```python
+>>> data = {"valid": {"stillValid": 123}}
+
+# These two are equivalent
+>>> roamer = roam.r(data, _raise=True)
+>>> roamer = roam.r_strict(data)
+
+# A strict/raising Roamer works as usual for valid paths...
 >>> roamer.valid.stillValid
 <Roamer: <dict>.valid.stillValid => 123>
 
+# ...but will fail *immediately* on an invalid path, even if you don't call the shim. 
 >>> try:
-...     roamer.valid.stillValid.nope
+...     roamer.valid.stillValid.nope.sorry
 ... except roam.RoamPathException as ex:
 ...     str(ex)
 '<RoamPathException: missing step 3 .nope for path <dict>.valid.stillValid.nope at <int>>'
 
+# Notice this  exception path only goes as far as the first invalid step  ^^^^^
 ```
 
 
