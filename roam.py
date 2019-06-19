@@ -2,8 +2,6 @@
 
 __version__ = "0.2"
 
-import re
-
 
 class _RoamMissingItem:
     """ Falsey class used to flag item "missing" from traversal path """
@@ -102,8 +100,13 @@ class _Path:
 
                 # Generate hints
                 if isinstance(last_found_data, (tuple, list, set, range)):
-                    if re.match(r"\[\d+\]", first_missing_desc):
-                        result.append(f" with length {len(last_found_data)}")
+                    # Detect an integer key slice operation like `[3]` or `[-2]`
+                    if first_missing_desc[0] == "[" and first_missing_desc[-1] == "]":
+                        try:
+                            int(first_missing_desc[1:-1])
+                            result.append(f" with length {len(last_found_data)}")
+                        except ValueError:
+                            pass
                 elif isinstance(
                     last_found_data, (str, int, float, complex, bool, bytes, bytearray)
                 ):
