@@ -273,8 +273,12 @@ class Roamer:
         # If item is callable: `.(x, y, z)` => `item(x, y, z)`
         elif callable(self._r_item_):
             call_result = self._r_item_(*args, **kwargs)
+        # If item is not callable but we were given parameters, try to apply
+        # them even though we know it won't work, to generate the appropriate
+        # exception to let the user know their action failed
+        elif args or kwargs:
+            call_result = self._r_item_(*args, **kwargs)
         # If item is not callable: `.()` => return wrapped item unchanged
-        # TODO What to do if we get extra arguments when unwrapping uncallable?
         else:
             call_result = self._r_item_
 

@@ -260,6 +260,15 @@ class TestRoamer:
             == "<RoamPathException: missing step 3 .x for path <dict>.license['name'].x at <str>>"
         )
 
+        # Test standard exception raised if user tries to call uncallable data
+        with pytest.raises(TypeError) as ex:
+            r(github_data0, _raise=True).license(1, 2, 3)
+        assert str(ex.value) == "'dict' object is not callable"
+
+        with pytest.raises(TypeError) as ex:
+            r(github_data0, _raise=True).description(bad="argument")
+        assert str(ex.value) == "'str' object is not callable"
+
     def test_call_delegates_to_and_returns_item(self):
         # Delegate to methods on `dict` item
         assert r(github_data0)["license"]["items"]() == github_data0["license"].items()
