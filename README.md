@@ -468,9 +468,27 @@ These similar tools and libraries inspired and informed **roam**:
 
 ## Contributing
 
-- Contributors must follow the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md)
-- Code contributions must be formatted with Black for consistency
-[![black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black) 
+We would love to get your help to improve **roam**!
+
+Please contribute by trying the project for yourself, report bugs you find of feature requests as [issues in GitHub](https://github.com/jmurty/roam/issues), and if you like get your hands dirty in the code.
+
+Please note that all contributors must follow the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). Be kind, be awesome!
+
+To get started working on the **roam** codebase:
+
+1. Clone the repository directly from GitHub: `git clone git@github.com:jmurty/roam.git`
+   - Alternatively [fork the repository](https://guides.github.com/activities/forking/) to work on your own version.
+1. [Install Python](https://www.python.org/downloads/) **version 3.6** or greater
+   - Consider using [pyenv](https://github.com/pyenv/pyenv) to install and manage the latest Python versions.
+1. [Install Pipenv](https://pipenv.readthedocs.io/en/latest/#install-pipenv-today)
+1. Change to the *roam/* repository directory
+1. Create a development virtualenv with `pipenv install --dev`
+1. **Explore and improve the code**
+1. Run all unit and documentation tests with `pytest -c pytest-with-cov-docs.ini`
+1. Run [Black](https://github.com/python/black) to automatically reformat Python code for consistency with `black .`
+1. Use [Tox](https://tox.readthedocs.io/en/latest/) to run all unit, documentation, and formatting tests across multiple Python versions 3with `tox`
+   - You must have installed the Python versions configured in the *tox.ini* for this to work.
+1. Please submit code changes as [GitHub pull requests](https://guides.github.com/activities/forking/#making-a-pull-request). 
 
 
 ## License
