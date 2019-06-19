@@ -194,7 +194,12 @@ class TestRoamer:
         with pytest.raises(RoamPathException) as ex:
             r(github_data0, _raise=True).x
         assert (
-            str(ex.value) == "<RoamPathException: missing step 1 .x for path <dict>.x>"
+            str(ex.value)
+            == "<RoamPathException: missing step 1 .x for path <dict>.x at <dict>"
+            " with keys ['name', 'full_name', 'private', 'owner', 'description', 'fork',"
+            " 'url', 'created_at', 'updated_at', 'pushed_at', 'homepage', 'size', 'language',"
+            " 'archived', 'disabled', 'open_issues_count', 'license', 'forks', 'open_issues',"
+            " 'watchers', 'default_branch']>"
         )
 
         with pytest.raises(RoamPathException) as ex:
@@ -243,7 +248,12 @@ class TestRoamer:
         with pytest.raises(RoamPathException) as ex:
             r(github_data0).x(_raise=True)
         assert (
-            str(ex.value) == "<RoamPathException: missing step 1 .x for path <dict>.x>"
+            str(ex.value)
+            == "<RoamPathException: missing step 1 .x for path <dict>.x at <dict>"
+            " with keys ['name', 'full_name', 'private', 'owner', 'description', 'fork',"
+            " 'url', 'created_at', 'updated_at', 'pushed_at', 'homepage', 'size', 'language',"
+            " 'archived', 'disabled', 'open_issues_count', 'license', 'forks', 'open_issues',"
+            " 'watchers', 'default_branch']>"
         )
 
         with pytest.raises(RoamPathException) as ex:
@@ -370,12 +380,12 @@ class TestRoamer:
 
         # Check slices work within multi-item processing
         assert (
-            r(python_filmography)[:].writers.name[:]
-            == r(python_filmography)[:].writers.name
+            r(python_filmography)[:].writers.name[:]()
+            == r(python_filmography)[:].writers.name()
         )
         assert (
-            r(python_filmography)[:]["writers"]["name"][:]
-            == r(python_filmography)[:]["writers"]["name"]
+            r(python_filmography)[:]["writers"]["name"][:]()
+            == r(python_filmography)[:]["writers"]["name"]()
         )
         assert r(python_filmography)[:].writers.name[1:-1] == (
             "Neil Innes",

@@ -40,29 +40,29 @@ class _Path:
             self._r_steps_ = []
 
     def log_getattr(self, attr_name, roamer):
-        self._r_steps_.append((f".{attr_name}", roamer))
+        self._r_steps_.append((f".{attr_name}", unwrap(roamer)))
 
     def log_getitem(self, key_name, roamer):
         if isinstance(key_name, slice):
             item_desc = f"[{key_name.start or ''}:{key_name.stop or ''}{key_name.step and ':' + key_name.step or ''}]"
         else:
             item_desc = f"[{key_name!r}]"
-        self._r_steps_.append((item_desc, roamer))
+        self._r_steps_.append((item_desc, unwrap(roamer)))
 
     def _last_found(self):
-        last_found_step = None, None, None
+        last_found_step = None, None, self._r_root_item_
         for i, step in enumerate(self._r_steps_, 1):
-            desc, roamer = step
-            if roamer != MISSING:
-                last_found_step = i, desc, roamer
+            desc, data = step
+            if data is not MISSING:
+                last_found_step = i, desc, data
         return last_found_step
 
     def _first_missing(self):
         for i, step in enumerate(self._r_steps_, 1):
-            desc, roamer = step
-            if roamer == MISSING:
-                return i, desc, roamer
-        return None, None, None
+            desc, data = step
+            if data is MISSING:
+                return i, desc, data
+        return None, None, self._r_root_item_
 
     def description(self):
         result = []
@@ -77,12 +77,11 @@ class _Path:
         result += [desc for desc, _ in self._r_steps_]
 
         if first_missing_index:
-            _, _, last_found_roamer = self._last_found()
-            if last_found_roamer:
-                result.append(f" at <{type(last_found_roamer()).__name__}>")
+            _, _, last_found_data = self._last_found()
+            if last_found_data is not MISSING:
+                result.append(f" at <{type(last_found_data).__name__}>")
 
                 # Generate hints
-                last_found_data = last_found_roamer()
                 if isinstance(last_found_data, (tuple, list, set, range)):
                     if re.match(r"\[\d+\]", first_missing_desc):
                         result.append(f" with length {len(last_found_data)}")
@@ -90,7 +89,7 @@ class _Path:
                     last_found_data, (str, int, float, complex, bool, bytes, bytearray)
                 ):
                     pass  # No hint for primitive types
-                else:
+                elif last_found_data:
                     try:
                         keys = last_found_data.keys()
                         if keys:
@@ -107,6 +106,14 @@ class _Path:
                             )
 
         return "".join(result)
+
+    def __eq__(self, other):
+        if isinstance(other, _Path):
+            return (
+                self._r_root_item_ == other._r_root_item_
+                and self._r_steps_ == other._r_steps_
+            )
+        return False
 
 
 class RoamPathException(Exception):
@@ -304,9 +311,12 @@ class Roamer:
 
     def __eq__(self, other):
         if isinstance(other, Roamer):
-            # TODO Fill in these comparisons to get real equality check
-            return other._r_item_ == self._r_item_
-        return other == self._r_item_
+            for attr in ("_r_item_", "_r_path_", "_r_is_multi_item_", "_r_raise_"):
+                if getattr(other, attr) != getattr(self, attr):
+                    return False
+            return True
+        else:
+            return other == self._r_item_
 
     def __bool__(self):
         return bool(self._r_item_)
