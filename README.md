@@ -361,6 +361,35 @@ A `Roamer` object lets you:
 
   ```
 
+### Get underlying data without using the `Roamer` *call* mechanism
+
+If you would prefer to get your underlying data from a `Roamer` without using the calling mechanism, or if the semi-magical behaviour is causing problems, you can get the data more directly with the `roam.unwrap` function.
+
+```python
+>>> roamer = roam.r({"a": {"b": {"c": "value"}}})
+
+# The two approaches are equivalent for valid paths...
+>>> roamer.a.b.c()
+'value'
+>>> roam.unwrap(roamer.a.b.c)
+'value'
+
+# ...and for invalid paths...
+>>> roamer.a.b.c.x()
+<MISSING>
+>>> roam.unwrap(roamer.a.b.c.x)
+<MISSING>
+
+# ...and for invalid paths where you want an exception
+>>> roamer.a.b.c.x(_raise=True)
+Traceback (most recent call last):
+roam.RoamPathException: <RoamPathException: missing step 4 .x for path <dict>.a.b.c.x at <str>>
+>>> roam.unwrap(roamer.a.b.c.x, _raise=True)
+Traceback (most recent call last):
+roam.RoamPathException: <RoamPathException: missing step 4 .x for path <dict>.a.b.c.x at <str>>
+
+```
+
 ### Call methods on or in your data
 
 Calling a `Roamer` shim with `()` returns the underlying data, but this mechanism has more powerful features. It also lets call methods on or in your data with arguments you provide, or invoke arbitrary functions.

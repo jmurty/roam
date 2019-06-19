@@ -330,3 +330,18 @@ def r(item, _raise=None):
 
 def r_strict(item):
     return Roamer(item, _raise=True)
+
+
+def unwrap(roamer: Roamer, _raise: bool = None) -> object:
+    """
+    Return the underlying data in the given ``Roamer`` shim object without
+    the need to call that shim object.
+
+    This is not the recommended way to get data from **roam** but you might
+    prefer it, or it might help to solve unexpected bugs caused by the semi-
+    magical call behaviour.
+    """
+    result = roamer._r_item_
+    if _raise and result is MISSING:
+        raise RoamPathException(roamer._r_path_)
+    return result
