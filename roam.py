@@ -49,7 +49,7 @@ class _Path:
             item_desc = f"[{key_name!r}]"
         self._r_steps_.append((item_desc, roamer))
 
-    def last_found(self):
+    def _last_found(self):
         last_found_step = None, None, None
         for i, step in enumerate(self._r_steps_, 1):
             desc, roamer = step
@@ -57,7 +57,7 @@ class _Path:
                 last_found_step = i, desc, roamer
         return last_found_step
 
-    def first_missing(self):
+    def _first_missing(self):
         for i, step in enumerate(self._r_steps_, 1):
             desc, roamer = step
             if roamer == MISSING:
@@ -67,7 +67,7 @@ class _Path:
     def description(self):
         result = []
 
-        first_missing_index, first_missing_desc, _ = self.first_missing()
+        first_missing_index, first_missing_desc, _ = self._first_missing()
         if first_missing_index:
             result.append(
                 f"missing step {first_missing_index} {first_missing_desc} for path "
@@ -77,7 +77,7 @@ class _Path:
         result += [desc for desc, _ in self._r_steps_]
 
         if first_missing_index:
-            _, _, last_found_roamer = self.last_found()
+            _, _, last_found_roamer = self._last_found()
             if last_found_roamer:
                 result.append(f" at <{type(last_found_roamer()).__name__}>")
 
