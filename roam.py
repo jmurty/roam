@@ -39,14 +39,25 @@ class _Path:
             self._r_root_item_ = initial_item
             self._r_steps_ = []
 
-    def log_getattr(self, attr_name, roamer):
+    def log_getattr(self, attr_name: str, roamer: "Roamer"):
+        """
+        Log the fact that a ``.dot`` attribute lookup was performed using a
+        given name and the given ``Roamer`` shim was produced.
+        """
         self._r_steps_.append((f".{attr_name}", unwrap(roamer)))
 
-    def log_getitem(self, key_name, roamer):
-        if isinstance(key_name, slice):
-            item_desc = f"[{key_name.start or ''}:{key_name.stop or ''}{key_name.step and ':' + key_name.step or ''}]"
+    def log_getitem(self, slice_value: slice, roamer: "Roamer"):
+        """
+        Log the fact that a ``["slice"]`` attribute lookup was performed using a
+        given slice value and the given ``Roamer`` shim was produced.
+        """
+        if isinstance(slice_value, slice):
+            item_desc = (
+                f"[{slice_value.start or ''}:{slice_value.stop or ''}"
+                f"{slice_value.step and ':' + slice_value.step or ''}]"
+            )
         else:
-            item_desc = f"[{key_name!r}]"
+            item_desc = f"[{slice_value!r}]"
         self._r_steps_.append((item_desc, unwrap(roamer)))
 
     def _last_found(self):
@@ -64,7 +75,15 @@ class _Path:
                 return i, desc, data
         return None, None, self._r_root_item_
 
-    def description(self):
+    def description(self) -> str:
+        """
+        Return a text description of this path, capturing:
+        - the first step at which the path was invalid (if applicable)
+        - the type of the root data object
+        - path steps applied
+        - hints about the type and content of data at the point the path became
+          invalid (if applicable)
+        """
         result = []
 
         first_missing_index, first_missing_desc, _ = self._first_missing()
@@ -117,6 +136,14 @@ class _Path:
 
 
 class RoamPathException(Exception):
+    """
+    An exception raised when a ``Roamer`` shim encounters an invalid path step
+    if that shim has the ``_raise`` option set, or provided when returning data.
+
+    The ``str()`` representation of this exception is a rich description of
+    where your traversal path went wrong.
+    """
+
     def __init__(self, path):
         super().__init__(self)
         self.path = path
@@ -126,6 +153,11 @@ class RoamPathException(Exception):
 
 
 class Roamer:
+    """
+    Act as a shim over your data objects, to intercept Python operations and do
+    the extra work required to more easily traverse nested data.
+    """
+
     # Internal state variables
     _r_item_ = None
     _r_path_ = None
@@ -327,18 +359,26 @@ class Roamer:
         except TypeError:
             # Here we know we have a non-MISSING item, but it doesn't support length lookups so
             # must be a single thing...
-            # TODO This is black magic, does it make enough sense?
+            # WARNING: This is black magic, does it make enough sense?
             return 1
 
     def __repr__(self):
         return f"<Roamer: {self._r_path_.description()} => {self._r_item_!r}>"
 
 
-def r(item, _raise=None):
+def r(item: object, _raise: bool = None) -> Roamer:
+    """
+    A shorter alias for constructing a ``Roamer`` shim class.
+    """
     return Roamer(item, _raise=_raise)
 
 
-def r_strict(item):
+def r_strict(item: object) -> Roamer:
+    """
+    A shorter alias for constructing a ``Roamer`` shim class in "strict" mode,
+    which means that the ``_raise`` flag set so the shim will immediately raise
+    a ``RoamPathException`` when you express an invalid path step.
+    """
     return Roamer(item, _raise=True)
 
 

@@ -163,7 +163,7 @@ Of course, sometimes it may be better for your path traversal to fail very expli
 
 ### Helpful path descriptions and exceptions
 
-To help you know where you are when traversing your data, or where your traversal path went wrong, **roam** keeps track of the path you have taken and presents it in the descriptive text of `Roamer` and `RoamPathExcepton` objects.
+To help you know where you are when traversing your data, or where your traversal path went wrong, **roam** keeps track of the path you have taken and presents it in the descriptive text of `Roamer` and `RoamPathException` objects.
 
 ```python
 >>> roamer = roam.r({"a": {"b": ["value1", "value2"]}})
