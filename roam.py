@@ -1,6 +1,6 @@
 """ Easily traverse nested Python data structures """
 
-__version__ = "0.3"
+__version__ = "0.3.1"
 
 
 class _RoamMissingItem:
