@@ -37,7 +37,7 @@ Three steps to use **roam**:
 
 ```
 
-<!-- TOC depthFrom:2 -->
+<!-- TOC depthFrom:2 insertAnchor:true -->
 
 - [Installation](#installation)
 - [Basics](#basics)
@@ -58,6 +58,7 @@ Three steps to use **roam**:
 
 <!-- /TOC -->
 
+<a id="markdown-installation" name="installation"></a>
 ## Installation
 
 [Install **roam**](https://pypi.org/project/roam/) with pip:
@@ -69,14 +70,17 @@ $ pip install roam
 **roam** works with Python versions 3.6 and later and has no dependencies.
 
 
+<a id="markdown-basics" name="basics"></a>
 ## Basics
 
+<a id="markdown-the-roamer-shim" name="the-roamer-shim"></a>
 ### The `Roamer` shim
 
 **roam** works by providing the `Roamer` class to serve as a shim over your data objects, to intercept Python operations and do the extra work required to more easily traverse nested data.
 
 Make a shim for your data by calling `roam.Roamer(data)` or you can use the shorter `r` alias function: `roam.r(data)`
 
+<a id="markdown-express-a-path-to-traverse" name="express-a-path-to-traverse"></a>
 ### Express a path to traverse
 
 Traverse your data by expressing the path to follow in Python `.dot` attribute or key/index `["slice"]` operations.
@@ -137,6 +141,7 @@ dict_items([('items', [1, 2, 3])])
 
 ```
 
+<a id="markdown-get-a-result-or-missing" name="get-a-result-or-missing"></a>
 ### Get a result, or `MISSING`
 
 You get a final result by *calling* the shim `Roamer` object like a function with `()` parentheses, which tells **roam** to return the underlying data.
@@ -181,6 +186,7 @@ Of course, sometimes it may be better for your path traversal to fail very expli
 
 ```
 
+<a id="markdown-helpful-path-descriptions-and-exceptions" name="helpful-path-descriptions-and-exceptions"></a>
 ### Helpful path descriptions and exceptions
 
 To help you know where you are when traversing your data, or where your traversal path went wrong, **roam** keeps track of the path you have taken and presents it in the descriptive text of `Roamer` and `RoamPathException` objects.
@@ -203,6 +209,7 @@ roam.RoamPathException: <RoamPathException: missing step 2 [9] for path <dict>.a
 
 ```
 
+<a id="markdown-traverse-collections" name="traverse-collections"></a>
 ### Traverse collections
 
 If your data includes collections of items such as a `list`, you can tell **roam** to iterate over the collection and apply following path lookups to *each item* in the collection instead of the collection as a whole.
@@ -283,8 +290,10 @@ When traversing a collection, if you use an integer index lookup instead of a sl
 ```
 
 
+<a id="markdown-advanced" name="advanced"></a>
 ## Advanced
 
+<a id="markdown-raise-exceptions-by-default" name="raise-exceptions-by-default"></a>
 ### Raise exceptions by default
 
 If you dislike getting `roam.MISSING` marker objects instead of an exception when you express an invalid path, you can make **roam** raise an exception immediately by setting a preference flag that will apply to all future generated shim objects.
@@ -313,6 +322,7 @@ Provide the `_raise` parameter when constructing a `Roamer` object or use the `r
 ```
 
 
+<a id="markdown-work-with-roamer-shim-objects-directly" name="work-with-roamer-shim-objects-directly"></a>
 ### Work with `Roamer` shim objects directly
 
 Although the main goal of the `Roamer` shim object is to traverse paths through your data, it has additional features to let you work with your data without the need to *call* the shim.
@@ -381,6 +391,7 @@ A `Roamer` object lets you:
 
   ```
 
+<a id="markdown-get-underlying-data-without-using-the-roamer-call-mechanism" name="get-underlying-data-without-using-the-roamer-call-mechanism"></a>
 ### Get underlying data without using the `Roamer` *call* mechanism
 
 If you would prefer to get your underlying data from a `Roamer` without using the calling mechanism, or if the semi-magical behaviour is causing problems, you can get the data more directly with the `roam.unwrap` function.
@@ -410,6 +421,7 @@ roam.RoamPathException: <RoamPathException: missing step 4 .x for path <dict>.a.
 
 ```
 
+<a id="markdown-call-methods-on-or-in-your-data" name="call-methods-on-or-in-your-data"></a>
 ### Call methods on or in your data
 
 Calling a `Roamer` shim with `()` returns the underlying data, but this mechanism has more powerful features. It also lets call methods on or in your data with arguments you provide, or invoke arbitrary functions.
@@ -466,6 +478,7 @@ If you need to invoke a callable in your data and then continue traversing its r
 
 ```
 
+<a id="markdown-a-note-on-naming-of-parameters-and-internal-variables" name="a-note-on-naming-of-parameters-and-internal-variables"></a>
 ### A note on naming of parameters and internal variables
 
 Because **roam** uses some voodoo to intercept and reinterpret path operations expressed in standard Python syntax, the library must avoid naming parameters or internal variables in a way that will clash with names in your real data.
@@ -475,6 +488,7 @@ For this reason the parameters you can pass when creating a `Roamer` object or c
 Similarly the internal variable names within `Roamer` have nasty names like `_r_item_` and `_r_path_` which should be *very* unlikely to clash with key or attribute names in real-world data. If you do have names like this in your data, stop it!
 
 
+<a id="markdown-related-projects" name="related-projects"></a>
 ## Related projects
 
 These similar tools and libraries inspired and informed **roam**:
@@ -486,6 +500,7 @@ These similar tools and libraries inspired and informed **roam**:
 - [traversify](https://pypi.org/project/traversify/) – *Handy python classes for manipulating json data, providing syntactic sugar for less verbose, easier to write code.*
 
 
+<a id="markdown-contributing" name="contributing"></a>
 ## Contributing
 
 We would love to get your help to improve **roam**!
@@ -513,6 +528,7 @@ To get started working on the **roam** codebase:
 1. Please submit code changes as [GitHub pull requests](https://guides.github.com/activities/forking/#making-a-pull-request). 
 
 
+<a id="markdown-license" name="license"></a>
 ## License
  
  **roam** is licensed under Apache, Version 2.0
