@@ -482,10 +482,12 @@ To get started working on the **roam** codebase:
    - Consider using [pyenv](https://github.com/pyenv/pyenv) to install and manage the latest Python versions.
 1. [Install Pipenv](https://pipenv.readthedocs.io/en/latest/#install-pipenv-today)
 1. Change to the *roam/* repository directory
-1. Create a development virtualenv with `pipenv install --dev`
+1. Create a development virtualenv: `pipenv install --dev`
 1. **Explore and improve the code**
-1. Run all unit and documentation tests with `pytest -c pytest-with-cov-docs.ini`
-1. Run [Black](https://github.com/python/black) to automatically reformat Python code for consistency with `black .`
+1. Run all code unit tests: `pytest`
+   - Run code and documentation tests with a coverage report: `pytest -c pytest-with-cov-docs.ini`
+1. The **roam** project requires that Python code be formatted with [Black](https://github.com/python/black) for consistency. Before sharing code changes: `black .`
+   - Install a Git pre-commit hook with the [pre-commit](https://pre-commit.com) tool to run `black` automatically before you commit changes: `pre-commit install-hooks`
 1. Use [Tox](https://tox.readthedocs.io/en/latest/) to run all unit, documentation, and formatting tests across multiple Python versions 3with `tox`
    - You must have installed the Python versions configured in the *tox.ini* for this to work.
 1. Please submit code changes as [GitHub pull requests](https://guides.github.com/activities/forking/#making-a-pull-request). 
