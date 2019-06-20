@@ -37,6 +37,26 @@ Three steps to use **roam**:
 
 ```
 
+<!-- TOC depthFrom:2 -->
+
+- [Installation](#installation)
+- [Basics](#basics)
+    - [The `Roamer` shim](#the-roamer-shim)
+    - [Express a path to traverse](#express-a-path-to-traverse)
+    - [Get a result, or `MISSING`](#get-a-result-or-missing)
+    - [Helpful path descriptions and exceptions](#helpful-path-descriptions-and-exceptions)
+    - [Traverse collections](#traverse-collections)
+- [Advanced](#advanced)
+    - [Raise exceptions by default](#raise-exceptions-by-default)
+    - [Work with `Roamer` shim objects directly](#work-with-roamer-shim-objects-directly)
+    - [Get underlying data without using the `Roamer` *call* mechanism](#get-underlying-data-without-using-the-roamer-call-mechanism)
+    - [Call methods on or in your data](#call-methods-on-or-in-your-data)
+    - [A note on naming of parameters and internal variables](#a-note-on-naming-of-parameters-and-internal-variables)
+- [Related projects](#related-projects)
+- [Contributing](#contributing)
+- [License](#license)
+
+<!-- /TOC -->
 
 ## Installation
 
